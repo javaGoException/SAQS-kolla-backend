@@ -16,7 +16,8 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7181;http://localhost:5007",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SQLITE_CONNECTION_STRING": "Data Source=TestDB;Version=3;"
       }
     }
   }

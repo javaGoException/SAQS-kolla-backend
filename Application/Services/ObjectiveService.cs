@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Domain.ValueObjects;
 using Infrastructure.Services;
 
 namespace Application.Services;
@@ -10,8 +11,18 @@ public class ObjectiveService : IObjectiveService
     {
         _databaseManager = databaseManager;
     }
-    public Task<CreateObjectiveDTO> CreateObjective(string name, string description)
+    public async Task<CreateObjectiveDTO> CreateObjective(string name, string description)
     {
-        throw new NotImplementedException();
+        Objective objective = new()
+        {
+            DisplayName = name,
+            Description = description
+        };
+        await _databaseManager.InsertObjective(objective);
+
+        CreateObjectiveDTO createObjectiveDTO = new(
+            objective.Guid
+        );
+        return createObjectiveDTO;
     }
 }

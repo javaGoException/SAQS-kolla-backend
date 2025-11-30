@@ -11,4 +11,5 @@ public class Assignment
     public DateTime DeadlineDateTime {get; set;}
     public Role RequiredRole {get; set;} = new();
     public Priority Priority {get; set;}
+    public AssignmentState AssignmentState {get; set;} = AssignmentState.Planned;
 }
