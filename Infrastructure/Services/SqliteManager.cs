@@ -17,7 +17,7 @@ public class SqliteManager : IDatabaseManager
     {
         using var connection = await _sqliteConnector.OpenConnectionAsync();
 
-        string sql = "INSERT INTO Objectives(guid, displayName, description) VALUES (@guid, @displayName, @description)";
+        string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description)";
         await connection.ExecuteAsync(sql, new { objective.Guid, objective.DisplayName, objective.Description });
     }
 }
