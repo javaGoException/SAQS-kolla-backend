@@ -4,5 +4,5 @@ namespace Application.Services;
 
 public interface IObjectiveService
 {
-    Task<CreateObjectiveDTO> CreateObjective(string name, string description);
+    Task<CreateObjectiveDto> CreateObjective(string name, string description);
 }

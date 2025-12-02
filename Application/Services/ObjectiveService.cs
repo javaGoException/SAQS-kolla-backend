@@ -11,7 +11,8 @@ public class ObjectiveService : IObjectiveService
     {
         _databaseManager = databaseManager;
     }
-    public async Task<CreateObjectiveDTO> CreateObjective(string name, string description)
+
+    public async Task<CreateObjectiveDto> CreateObjective(string name, string description)
     {
         Objective objective = new()
         {
@@ -20,7 +21,7 @@ public class ObjectiveService : IObjectiveService
         };
         await _databaseManager.InsertObjective(objective);
 
-        CreateObjectiveDTO createObjectiveDTO = new(
+        CreateObjectiveDto createObjectiveDTO = new(
             objective.Guid
         );
         return createObjectiveDTO;

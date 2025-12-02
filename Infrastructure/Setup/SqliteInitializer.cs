@@ -21,7 +21,7 @@ public class SqliteInitializer()
         using var connection = new SqliteConnection(_connectionString);
         await connection.ExecuteAsync(@"
         CREATE TABLE IF NOT EXISTS Objectives(
-        Guid INTEGER PRIMARY KEY,
+        Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
         Description TEXT
         );");

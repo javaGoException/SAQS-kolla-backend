@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using API.DTOs;
 using Application.Services;
+using Infrastructure.Services;
+using Infrastructure.DTOs;
 
 namespace API;
 
@@ -8,7 +10,38 @@ public static class ObjectiveEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapPost("/CreateObjective", async ([FromBody] CreateObjectiveRequest? createObjectiveRequest, IObjectiveService objectiveService) =>
+        app.MapGet("Objectives/GetObjective/{guid}", async (string? guid, IDatabaseManager databaseManager) =>
+        {
+            if (string.IsNullOrEmpty(guid))
+            {
+                return Results.NotFound();
+            }
+
+            try
+            {
+                Guid.Parse(guid);
+            } 
+            catch (FormatException)
+            {
+                return Results.BadRequest(new {error = "GUID is invalid"});
+            }
+
+            ObjectiveDto? objective = await databaseManager.QueryObjective(Guid.Parse(guid));
+            if(objective == null)
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Ok(objective);
+        });
+
+        app.MapGet("Objectives/GetAllObjectivesGuids",async (IDatabaseManager databaseManager) =>
+        {
+            List<Guid> guids = await databaseManager.QueryAllObjectivesGuids();
+            return Results.Ok(guids);
+        });
+
+        app.MapPost("Objectives/CreateObjective", async ([FromBody] CreateObjectiveRequest? createObjectiveRequest, IObjectiveService objectiveService) =>
         {
             if (createObjectiveRequest == null)
             {
@@ -32,7 +65,7 @@ public static class ObjectiveEndpoints
                 return Results.BadRequest(new {error = createObjectiveDTO.Error});
             }
 
-            return Results.Ok(new CreateObjectiveResponse(createObjectiveDTO.Guid));
+            return Results.Ok(new {guid = createObjectiveDTO.Guid});
         });
 
         
