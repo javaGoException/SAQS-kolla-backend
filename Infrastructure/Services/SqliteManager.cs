@@ -1,23 +1,28 @@
 using Dapper;
+using Microsoft.Data.Sqlite;
 using Domain.ValueObjects;
-using Infrastructure.Setup;
 
 namespace Infrastructure.Services;
 
 public class SqliteManager : IDatabaseManager
 {
-    private readonly IDatabaseConnector _sqliteConnector;
-
-    public SqliteManager(IDatabaseConnector sqliteConnector)
+    private async Task<SqliteConnection> OpenConnectionAsync()
     {
-        _sqliteConnector = sqliteConnector;
+        string? _connectionString = Environment.GetEnvironmentVariable("SQLITE_CONNECTION_STRING");
+        if (string.IsNullOrEmpty(_connectionString))
+        {
+            throw new ArgumentNullException("The connection string was null or empty");
+        }
+        var connection = new SqliteConnection(_connectionString);
+        await connection.OpenAsync();
+        return connection;
     }
 
     public async Task InsertObjective(Objective objective)
     {
-        using var connection = await _sqliteConnector.OpenConnectionAsync();
+        using var connection = await OpenConnectionAsync();
 
         string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description)";
-        await connection.ExecuteAsync(sql, new { objective.Guid, objective.DisplayName, objective.Description });
+        await connection.ExecuteAsync(sql, objective);
     }
 }

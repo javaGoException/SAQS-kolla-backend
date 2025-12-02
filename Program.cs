@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
 
 builder.Services.AddScoped<IDatabaseManager, SqliteManager>();
-builder.Services.AddScoped<IDatabaseConnector, SqliteConnector>();
 builder.Services.AddSingleton<SqliteInitializer>();
 
 var app = builder.Build();
