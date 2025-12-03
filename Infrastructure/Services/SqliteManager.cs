@@ -1,20 +1,20 @@
 using Dapper;
 using Microsoft.Data.Sqlite;
-using Domain.ValueObjects;
-using Infrastructure.DTOs;
+using SAQS_kolla_backend.Domain.ValueObjects;
+using SAQS_kolla_backend.Infrastructure.DTOs;
 
-namespace Infrastructure.Services;
+namespace SAQS_kolla_backend.Infrastructure.Services;
 
 public class SqliteManager : IDatabaseManager
 {
     private async Task<SqliteConnection> OpenConnectionAsync()
     {
-        string? _connectionString = Environment.GetEnvironmentVariable("SQLITE_CONNECTION_STRING");
-        if (string.IsNullOrEmpty(_connectionString))
+        string? connectionString = Environment.GetEnvironmentVariable("SQLITE_CONNECTION_STRING");
+        if (string.IsNullOrEmpty(connectionString))
         {
             throw new ArgumentNullException("The connection string was null or empty");
         }
-        var connection = new SqliteConnection(_connectionString);
+        var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync();
         return connection;
     }
@@ -44,9 +44,9 @@ public class SqliteManager : IDatabaseManager
         string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description);";
 
         await connection.ExecuteAsync(sql, new {
-            Guid = objective.Guid, 
-            DisplayName = objective.DisplayName, 
-            Description = objective.Description
+            objective.Guid, 
+            objective.DisplayName, 
+            objective.Description
         });
     }
 }

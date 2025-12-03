@@ -1,8 +1,8 @@
-using Application.DTOs;
-using Domain.ValueObjects;
-using Infrastructure.Services;
+using SAQS_kolla_backend.Application.DTOs;
+using SAQS_kolla_backend.Domain.ValueObjects;
+using SAQS_kolla_backend.Infrastructure.Services;
 
-namespace Application.Services;
+namespace SAQS_kolla_backend.Application.Services;
 
 public class ObjectiveService : IObjectiveService
 {

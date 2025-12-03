@@ -1,4 +1,4 @@
-namespace Infrastructure.DTOs;
+namespace SAQS_kolla_backend.Infrastructure.DTOs;
 
 public record ObjectiveDto
 (

@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Dapper;
 
-namespace Infrastructure.Setup;
+namespace SAQS_kolla_backend.Infrastructure.Setup;
 
 public class SqliteInitializer()
 {

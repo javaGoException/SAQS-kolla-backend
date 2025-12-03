@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using API.DTOs;
-using Application.Services;
-using Infrastructure.Services;
-using Infrastructure.DTOs;
+using SAQS_kolla_backend.API.DTOs;
+using SAQS_kolla_backend.Application.Services;
+using SAQS_kolla_backend.Infrastructure.Services;
+using SAQS_kolla_backend.Infrastructure.DTOs;
 
-namespace API;
+namespace SAQS_kolla_backend.API;
 
 public static class ObjectiveEndpoints
 {

@@ -1,6 +1,6 @@
-using Application.DTOs;
+using SAQS_kolla_backend.Application.DTOs;
 
-namespace Application.Services;
+namespace SAQS_kolla_backend.Application.Services;
 
 public interface IObjectiveService
 {

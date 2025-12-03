@@ -1,7 +1,7 @@
-using Domain.ValueObjects;
-using Infrastructure.DTOs;
+using SAQS_kolla_backend.Domain.ValueObjects;
+using SAQS_kolla_backend.Infrastructure.DTOs;
 
-namespace Infrastructure.Services;
+namespace SAQS_kolla_backend.Infrastructure.Services;
 
 public interface IDatabaseManager
 {

@@ -1,6 +1,6 @@
-using Domain.Enums;
+using SAQS_kolla_backend.Domain.Enums;
 
-namespace Domain.ValueObjects;
+namespace SAQS_kolla_backend.Domain.ValueObjects;
 
 public class Assignment
 {

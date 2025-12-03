@@ -1,7 +1,7 @@
-using API;
-using Application.Services;
-using Infrastructure.Services;
-using Infrastructure.Setup;
+using SAQS_kolla_backend.API;
+using SAQS_kolla_backend.Application.Services;
+using SAQS_kolla_backend.Infrastructure.Services;
+using SAQS_kolla_backend.Infrastructure.Setup;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
