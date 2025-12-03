@@ -1,29 +1,44 @@
-using SAQS_kolla_backend.Application.DTOs;
+using SAQS_kolla_backend.Application.Common;
+using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Domain.ValueObjects;
-using SAQS_kolla_backend.Infrastructure.Services;
 
 namespace SAQS_kolla_backend.Application.Services;
 
-public class ObjectiveService : IObjectiveService
+public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjectiveService
 {
-    private IDatabaseManager _databaseManager = null!;
-    public ObjectiveService(IDatabaseManager databaseManager)
+    public async Task<Result<List<Guid>>> GetAllObjectivesGuid()
     {
-        _databaseManager = databaseManager;
+        List<Guid> guids = await objectiveRepository.QueryAllObjectivesGuids();
+        return Result<List<Guid>>.Success(guids);
     }
 
-    public async Task<CreateObjectiveDto> CreateObjective(string name, string description)
+    public async Task<Result<Objective>> GetObjective(Guid guid)
     {
+        Objective? objective = await objectiveRepository.QueryObjective(guid);
+
+        if (objective == null)
+        {
+            return Result<Objective>.Failure($"There is no objective with guid: {guid}");
+        }
+
+        return Result<Objective>.Success(objective);
+    }
+
+    public async Task<Result<Guid>> CreateObjective(string name, string description)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return Result<Guid>.Failure("Objective name cannot be empty");
+        }
+
         Objective objective = new()
         {
+            Guid = Guid.NewGuid(),
             DisplayName = name,
             Description = description
         };
-        await _databaseManager.InsertObjective(objective);
+        await objectiveRepository.InsertObjective(objective);
 
-        CreateObjectiveDto createObjectiveDTO = new(
-            objective.Guid
-        );
-        return createObjectiveDTO;
+        return Result<Guid>.Success(objective.Guid);
     }
 }

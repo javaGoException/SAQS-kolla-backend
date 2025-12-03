@@ -2,6 +2,8 @@ namespace SAQS_kolla_backend.Domain.ValueObjects;
 
 public class Role
 {
-    public string DisplayName {get; set;} = string.Empty;
-    public bool IsAdmin {get; set;} = false;
+    public required Guid Guid {get; set;}
+    public required string DisplayName {get; set;}
+    public string? Description {get; set;}
+    public required bool IsAdmin {get; set;}
 }

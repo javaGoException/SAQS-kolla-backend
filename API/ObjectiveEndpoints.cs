@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using SAQS_kolla_backend.API.DTOs;
-using SAQS_kolla_backend.Application.Services;
-using SAQS_kolla_backend.Infrastructure.Services;
-using SAQS_kolla_backend.Infrastructure.DTOs;
+using SAQS_kolla_backend.Application.Common;
+using SAQS_kolla_backend.Application.Interfaces;
+using SAQS_kolla_backend.Domain.ValueObjects;
 
 namespace SAQS_kolla_backend.API;
 
@@ -10,7 +10,18 @@ public static class ObjectiveEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapGet("Objectives/GetObjective/{guid}", async (string? guid, IDatabaseManager databaseManager) =>
+        app.MapGet("Objective/GetAll",async (IObjectiveService objectiveService) =>
+        {
+            Result<List<Guid>> result = await objectiveService.GetAllObjectivesGuid();
+            if (result.IsSuccess == false)
+            {
+                return Results.BadRequest(new {result.Error});
+            }
+
+            return Results.Ok(result.Data);
+        });
+
+        app.MapGet("Objective/Get/{guid}", async (IObjectiveService objectiveService, string? guid) =>
         {
             if (string.IsNullOrEmpty(guid))
             {
@@ -26,22 +37,16 @@ public static class ObjectiveEndpoints
                 return Results.BadRequest(new {error = "GUID is invalid"});
             }
 
-            ObjectiveDto? objective = await databaseManager.QueryObjective(Guid.Parse(guid));
-            if(objective == null)
+            Result<Objective> result = await objectiveService.GetObjective(Guid.Parse(guid));
+            if(result.IsSuccess == false)
             {
-                return Results.NotFound();
+                return Results.BadRequest(result.Error);
             }
 
-            return Results.Ok(objective);
+            return Results.Ok(result.Data);
         });
 
-        app.MapGet("Objectives/GetAllObjectivesGuids",async (IDatabaseManager databaseManager) =>
-        {
-            List<Guid> guids = await databaseManager.QueryAllObjectivesGuids();
-            return Results.Ok(guids);
-        });
-
-        app.MapPost("Objectives/CreateObjective", async ([FromBody] CreateObjectiveRequest? createObjectiveRequest, IObjectiveService objectiveService) =>
+        app.MapPost("Objective/Create", async ([FromBody] CreateObjectiveRequest? createObjectiveRequest, IObjectiveService objectiveService) =>
         {
             if (createObjectiveRequest == null)
             {
@@ -58,14 +63,14 @@ public static class ObjectiveEndpoints
                 return Results.BadRequest(new {error = "Objective description is required"});
             }
 
-            var createObjectiveDTO = await objectiveService.CreateObjective(createObjectiveRequest.Name, createObjectiveRequest.Description);
+            Result<Guid> result = await objectiveService.CreateObjective(createObjectiveRequest.Name, createObjectiveRequest.Description);
 
-            if(string.IsNullOrEmpty(createObjectiveDTO.Error) == false)
+            if(result.IsSuccess == false)
             {
-                return Results.BadRequest(new {error = createObjectiveDTO.Error});
+                return Results.BadRequest(result.Error);
             }
 
-            return Results.Ok(new {guid = createObjectiveDTO.Guid});
+            return Results.Ok(new {guid = result.Data});
         });
 
         
