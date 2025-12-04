@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SAQS_kolla_backend.API.DTOs;
+using SAQS_kolla_backend.Application;
 using SAQS_kolla_backend.Application.Common;
 using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Domain.ValueObjects;
@@ -15,7 +16,7 @@ public static class ObjectiveEndpoints
             Result<List<Guid>> result = await objectiveService.GetAllObjectivesGuid();
             if (result.IsSuccess == false)
             {
-                return Results.BadRequest(new {result.Error});
+                return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
             return Results.Ok(result.Data);
@@ -40,7 +41,7 @@ public static class ObjectiveEndpoints
             Result<Objective> result = await objectiveService.GetObjective(Guid.Parse(guid));
             if(result.IsSuccess == false)
             {
-                return Results.BadRequest(result.Error);
+                return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
             return Results.Ok(result.Data);
@@ -67,7 +68,7 @@ public static class ObjectiveEndpoints
 
             if(result.IsSuccess == false)
             {
-                return Results.BadRequest(result.Error);
+                return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
             return Results.Ok(new {guid = result.Data});

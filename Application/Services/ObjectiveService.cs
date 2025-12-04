@@ -18,7 +18,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         if (objective == null)
         {
-            return Result<Objective>.Failure($"There is no objective with guid: {guid}");
+            return Result<Objective>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
         }
 
         return Result<Objective>.Success(objective);
@@ -28,7 +28,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
     {
         if (string.IsNullOrEmpty(name))
         {
-            return Result<Guid>.Failure("Objective name cannot be empty");
+            return Result<Guid>.Failure(ResultError.ValidationError, "Objective name cannot be empty");
         }
 
         Objective objective = new()
