@@ -45,4 +45,11 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
 
         await connection.ExecuteAsync(sql, objective);
     }
+    
+    public async Task DeleteObjective(Guid guid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "DELETE FROM Objectives WHERE Guid = @Guid;";
+        await connection.ExecuteAsync(sql, new { Guid = guid });
+    }
 }

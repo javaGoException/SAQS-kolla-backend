@@ -74,6 +74,33 @@ public static class ObjectiveEndpoints
             return Results.Ok(new {guid = result.Data});
         });
 
-        
+        app.MapDelete("Objective/Delete/{guid}", async (IObjectiveService objectiveService, string guid) =>
+        {
+            if (string.IsNullOrEmpty(guid))
+            {
+                return Results.BadRequest(new { error = "GUID is required" });
+            }
+
+            Guid parsedGuid;
+            try
+            {
+                parsedGuid = Guid.Parse(guid);
+            }
+            catch (FormatException)
+            {
+                return Results.BadRequest(new { error = "GUID is invalid" });
+            }
+
+            // Aufruf des Services
+            Result<Guid> result = await objectiveService.DeleteObjective(parsedGuid);
+
+            if (result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            // Erfolgreich gelöscht -> Rückgabe der GUID
+            return Results.Ok(new { guid = result.Data });
+        });
     }
 }
