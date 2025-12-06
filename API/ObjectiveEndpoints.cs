@@ -79,21 +79,25 @@ public static class ObjectiveEndpoints
             if (string.IsNullOrEmpty(guid))
             {
                 return Results.NotFound();
-            } else
-            {
-                Result<Guid> result = await objectiveService.DeleteObjective(Guid.Parse(guid));
-
-                if(result.IsSuccess == false)
-                {
-                    return ErrorMapper.Map(result.ResultError, result.Error!);
-                }
-
-                return Results.Ok(new {guid = result.Data});
             }
 
-            
-        });
+            try
+            {
+                Guid.Parse(guid);
+            } 
+            catch (FormatException)
+            {
+                return Results.BadRequest(new {error = "GUID is invalid"});
+            }
 
-        
+            Result<Guid> result = await objectiveService.DeleteObjective(Guid.Parse(guid));
+
+            if(result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
     }
 }
