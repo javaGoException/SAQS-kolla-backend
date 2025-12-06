@@ -48,7 +48,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         if (objective == null)
         {
-            return Result<Objective>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+            return Result<Guid>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
         }
 
         await objectiveRepository.DeleteObjective(guid);

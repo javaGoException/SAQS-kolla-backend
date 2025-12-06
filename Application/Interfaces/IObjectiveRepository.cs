@@ -7,5 +7,5 @@ public interface IObjectiveRepository
     Task<Objective?> QueryObjective(Guid guid);
     Task<List<Guid>> QueryAllObjectivesGuids();
     Task InsertObjective(Objective objective);
-    Task DeleteObjective(Guid guid)
+    Task DeleteObjective(Guid guid);
 }
