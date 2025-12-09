@@ -9,8 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
 
 builder.Services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IDatabaseConnector, SqliteConnector>();
 builder.Services.AddSingleton<SqliteInitializer>();
+builder.Services.AddSingleton<ValidatorService>();
 
 builder.Services.AddOptions<DatabaseOptions>()
     .BindConfiguration("DatabaseOptions")
@@ -19,6 +21,7 @@ builder.Services.AddOptions<DatabaseOptions>()
 
 var app = builder.Build();
 ObjectiveEndpoints.Map(app);
+RoleEndpoints.Map(app);
 
 using (var scope = app.Services.CreateScope())
 {
