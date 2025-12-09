@@ -29,16 +29,17 @@ public static class ObjectiveEndpoints
                 return Results.NotFound();
             }
 
+            Guid parsedGuid;
             try
             {
-                Guid.Parse(guid);
+                parsedGuid = Guid.Parse(guid);
             } 
             catch (FormatException)
             {
                 return Results.BadRequest(new {error = "GUID is invalid"});
             }
 
-            Result<Objective> result = await objectiveService.GetObjective(Guid.Parse(guid));
+            Result<Objective> result = await objectiveService.GetObjective(parsedGuid);
             if(result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -81,16 +82,17 @@ public static class ObjectiveEndpoints
                 return Results.NotFound();
             }
 
+            Guid parsedGuid;
             try
             {
-                Guid.Parse(guid);
+                parsedGuid = Guid.Parse(guid);
             } 
             catch (FormatException)
             {
                 return Results.BadRequest(new {error = "GUID is invalid"});
             }
 
-            Result<Guid> result = await objectiveService.DeleteObjective(Guid.Parse(guid));
+            Result result = await objectiveService.DeleteObjective(parsedGuid);
 
             if(result.IsSuccess == false)
             {

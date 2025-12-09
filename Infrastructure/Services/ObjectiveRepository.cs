@@ -28,6 +28,27 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return objective;
     }
 
+    public async Task<Objective?> QueryObjective(string name)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "SELECT * FROM Objectives o WHERE o.Name = @Name;";
+
+        ObjectiveDto? objectiveDto = await connection.QuerySingleOrDefaultAsync<ObjectiveDto>(sql, new {Name = name});
+
+        if (objectiveDto == null)
+        {
+            return null;
+        }
+
+        Objective objective = new()
+        {
+            Guid = Guid.Parse(objectiveDto.Guid),
+            DisplayName = objectiveDto.DisplayName,
+            Description = objectiveDto.Description
+        };
+        return objective;
+    }
+
     public async Task<List<Guid>> QueryAllObjectivesGuids()
     {
         using var connection = await databaseConnector.OpenConnectionAsync();

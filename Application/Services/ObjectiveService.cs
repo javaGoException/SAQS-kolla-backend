@@ -31,6 +31,13 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
             return Result<Guid>.Failure(ResultError.ValidationError, "Objective name cannot be empty");
         }
 
+        Objective? existingObjective = await objectiveRepository.QueryObjective(name);
+
+        if (existingObjective != null)
+        {
+            return Result<Guid>.Failure(ResultError.Conflict, "The objective with this name already exists");
+        }
+
         Objective objective = new()
         {
             Guid = Guid.NewGuid(),
@@ -42,17 +49,17 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Guid>.Success(objective.Guid);
     }
 
-    public async Task<Result<Guid>> DeleteObjective(Guid guid)
+    public async Task<Result> DeleteObjective(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 
         if (objective == null)
         {
-            return Result<Guid>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+            return Result.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
         }
 
         await objectiveRepository.DeleteObjective(guid);
 
-        return Result<Guid>.Success(objective.Guid);
+        return Result.Success();
     }
 }
