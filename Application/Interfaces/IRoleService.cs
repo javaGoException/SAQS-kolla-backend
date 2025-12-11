@@ -7,7 +7,7 @@ public interface IRoleService
 {
     Task<Result<List<Guid>>> GetAllGuids();
     Task<Result<Role>> Get(Guid guid);
-    Task<Result<Guid>> Create(string displayName, string? description);
+    Task<Result<Guid>> Create(string displayName, string? description, bool isAdmin);
     Task<Result> SetDisplayName(Guid guid, string displayName);
     Task<Result> SetDescription(Guid guid, string? description);
     Task<Result> SetAdminFlag(Guid guid, bool isAdmin);
