@@ -4,40 +4,96 @@ using SAQS_kolla_backend.Domain.ValueObjects;
 
 namespace SAQS_kolla_backend.Application.Services;
 
-public class RoleService() : IRoleService
+public class RoleService(IRoleRepository roleRepository) : IRoleService
 {
-    public Task<Result<Guid>> Create(string displayName, string? description)
+    public async Task<Result<List<Guid>>> GetAllGuids()
     {
-        throw new NotImplementedException();
+        List<Guid> guids = await roleRepository.QueryAllRolesGuids();
+        return Result<List<Guid>>.Success(guids);
     }
 
-    public Task<Result> Delete(Guid guid)
+    public async Task<Result<Role>> Get(Guid guid)
     {
-        throw new NotImplementedException();
+        Role? role = await roleRepository.QueryRole(guid);
+
+        if (role == null)
+        {
+            return Result<Role>.Failure(ResultError.NotFound, $"There is no role with guid: {guid}");
+        }
+
+        return Result<Role>.Success(role);
     }
 
-    public Task<Result<Role>> Get(Guid guid)
+    public async Task<Result<Guid>> Create(string name, string? description, bool isAdmin)
     {
-        throw new NotImplementedException();
+        Role? existingRole = await roleRepository.QueryRole(name);
+
+        if (existingRole != null)
+        {
+            return Result<Guid>.Failure(ResultError.Conflict, "The role with this name already exists");
+        }
+
+        Role role = new()
+        {
+            Guid = Guid.NewGuid(),
+            DisplayName = name,
+            Description = description,
+            IsAdmin = isAdmin
+        };
+        await roleRepository.InsertRole(role);
+
+        return Result<Guid>.Success(role.Guid);
     }
 
-    public Task<Result<List<Guid>>> GetAllGuids()
+    public async Task<Result> SetDisplayName(Guid guid, string displayName)
     {
-        throw new NotImplementedException();
+        Role? role = await roleRepository.QueryRole(guid);
+
+        if (role == null)
+        {
+            return Result.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
+        }
+
+        await roleRepository.UpdateDisplayName(guid, displayName);
+        return Result.Success();
     }
 
-    public Task<Result> SetAdminFlag(Guid guid, bool isAdmin)
+    public async Task<Result> SetDescription(Guid guid, string? description)
     {
-        throw new NotImplementedException();
+        Role? role = await roleRepository.QueryRole(guid);
+
+        if (role == null)
+        {
+            return Result.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
+        }
+
+        await roleRepository.UpdateDescription(guid, description);
+        return Result.Success();
     }
 
-    public Task<Result> SetDescription(Guid guid, string? description)
+    public async Task<Result> SetAdminFlag(Guid guid, bool isAdmin)
     {
-        throw new NotImplementedException();
+        Role? role = await roleRepository.QueryRole(guid);
+
+        if (role == null)
+        {
+            return Result.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
+        }
+
+        await roleRepository.UpdateAdminFlag(guid, isAdmin);
+        return Result.Success();
     }
 
-    public Task<Result> SetDisplayName(Guid guid, string displayName)
+    public async Task<Result> Delete(Guid guid)
     {
-        throw new NotImplementedException();
+        Role? role = await roleRepository.QueryRole(guid);
+
+        if (role == null)
+        {
+            return Result.Failure(ResultError.NotFound, $"The role with this guid doesn't exists");
+        }
+
+        await roleRepository.DeleteRole(guid);
+        return Result.Success();
     }
 }

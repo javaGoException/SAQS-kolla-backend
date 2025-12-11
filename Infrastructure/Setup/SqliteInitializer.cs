@@ -33,7 +33,7 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
         Description TEXT,
-        isAdmin INTEGER NOT NULL
+        IsAdmin INTEGER NOT NULL
         );");
     }
 }

@@ -26,11 +26,6 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
     public async Task<Result<Guid>> Create(string name, string? description)
     {
-        if (string.IsNullOrEmpty(name))
-        {
-            return Result<Guid>.Failure(ResultError.ValidationError, "Objective name cannot be empty");
-        }
-
         Objective? existingObjective = await objectiveRepository.QueryObjective(name);
 
         if (existingObjective != null)
