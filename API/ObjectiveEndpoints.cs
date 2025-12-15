@@ -77,6 +77,23 @@ public static class ObjectiveEndpoints
             return Results.NoContent();
         });
 
+        app.MapPatch("SetObjectiveDisplayName", async (string? guid, string? displayName, ValidatorService validatorService, IObjectiveService objectiveService) =>
+        {
+            if(validatorService.isGuidValid(guid)==false)
+            {
+                return Results.BadRequest(new {error = "GUID is invalid"});
+            }
+
+            Result result = await objectiveService.SetObjectiveDisplayName(Guid.Parse(guid!), displayName);
+
+            if(result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
+
         app.MapDelete("Objective/Delete/{guid}", async (string? guid, ValidatorService validatorService, IObjectiveService objectiveService) =>
         {
             if (validatorService.isGuidValid(guid) == false)

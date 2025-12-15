@@ -9,5 +9,6 @@ public interface IObjectiveRepository
     Task<List<Guid>> QueryAllObjectivesGuids();
     Task InsertObjective(Objective objective);
     Task<bool> UpdateDescription(Guid guid, string? description);
+    Task<bool> UpdateDisplayName(Guid guid, string? displayName);
     Task DeleteObjective(Guid guid);
 }

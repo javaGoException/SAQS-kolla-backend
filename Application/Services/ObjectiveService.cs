@@ -58,6 +58,20 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result.Success();
     }
 
+    public async Task<Result> SetObjectiveDisplayName(Guid guid, string? displayName)
+    {
+        Objective? objective = await objectiveRepository.QueryObjective(guid);
+
+        if (objective == null)
+        {
+            return Result.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+        }
+
+        await objectiveRepository.UpdateDisplayName(guid, displayName);
+
+        return Result.Success();
+    }
+
     public async Task<Result> Delete(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
