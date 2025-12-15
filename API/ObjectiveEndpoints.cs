@@ -60,6 +60,23 @@ public static class ObjectiveEndpoints
             return Results.Ok(new {guid = result.Data});
         });
 
+        app.MapPatch("Objective/SetObjectiveDescription", async (string? guid, string? description, ValidatorService validatorService, IObjectiveService objectiveService) =>
+        {
+            if(validatorService.isGuidValid(guid)==false)
+            {
+                return Results.BadRequest(new {error = "GUID is invalid"});
+            }
+
+            Result result = await objectiveService.SetObjectiveDescription(Guid.Parse(guid!), description);
+
+            if(result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
+
         app.MapDelete("Objective/Delete/{guid}", async (string? guid, ValidatorService validatorService, IObjectiveService objectiveService) =>
         {
             if (validatorService.isGuidValid(guid) == false)

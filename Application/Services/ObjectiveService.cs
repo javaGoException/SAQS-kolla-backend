@@ -44,6 +44,20 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Guid>.Success(objective.Guid);
     }
 
+    public async Task<Result> SetObjectiveDescription(Guid guid, string? description)
+    {
+        Objective? objective = await objectiveRepository.QueryObjective(guid);
+
+        if (objective == null)
+        {
+            return Result.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+        }
+
+        await objectiveRepository.UpdateDescription(guid, description);
+
+        return Result.Success();
+    }
+
     public async Task<Result> Delete(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);

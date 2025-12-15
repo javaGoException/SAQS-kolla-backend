@@ -67,6 +67,15 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         await connection.ExecuteAsync(sql, objective);
     }
 
+    public async Task<bool> UpdateDescription(Guid guid, string? description)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "UPDATE Objectives SET Description = @Description WHERE Guid = @Guid;";
+
+        var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid, Description = description});
+        return affectedRows > 0;
+    }
+
     public async Task DeleteObjective(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
