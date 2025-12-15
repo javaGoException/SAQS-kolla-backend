@@ -50,7 +50,7 @@ public static class RoleEndpoints
                 return Results.BadRequest(new {error = "Role name is required"});
             }
 
-            Result<Guid> result = await roleService.Create(roleCreateRequest.Name, roleCreateRequest.Description);
+            Result<Guid> result = await roleService.Create(roleCreateRequest.Name, roleCreateRequest.Description, roleCreateRequest.isAdmin);
 
             if(result.IsSuccess == false)
             {

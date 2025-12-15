@@ -10,6 +10,7 @@ builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
 
 builder.Services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IDatabaseConnector, SqliteConnector>();
 builder.Services.AddSingleton<SqliteInitializer>();
 builder.Services.AddSingleton<ValidatorService>();
