@@ -31,7 +31,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
     public async Task<Objective?> QueryObjective(string name)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT * FROM Objectives o WHERE o.Name = @Name;";
+        string sql = "SELECT * FROM Objectives o WHERE o.DisplayName = @Name;";
 
         ObjectiveDto? objectiveDto = await connection.QuerySingleOrDefaultAsync<ObjectiveDto>(sql, new {Name = name});
 
@@ -59,19 +59,21 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return guids;
     }
 
-    public async Task InsertObjective(Objective objective)
+    public async Task<bool> InsertObjective(Objective objective)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description);";
 
-        await connection.ExecuteAsync(sql, objective);
+        var affectedRows = await connection.ExecuteAsync(sql, objective);
+        return affectedRows > 0;
     }
 
-    public async Task DeleteObjective(Guid guid)
+    public async Task<bool> DeleteObjective(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "DELETE FROM Objectives WHERE Guid = @Guid;";
 
-        await connection.ExecuteAsync(sql, new {Guid = guid});
+        var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid});
+        return affectedRows > 0;
     }
 }

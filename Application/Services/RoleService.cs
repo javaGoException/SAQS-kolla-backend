@@ -18,7 +18,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
 
         if (role == null)
         {
-            return Result<Role>.Failure(ResultError.NotFound, $"There is no role with guid: {guid}");
+            return Result<Role>.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
         }
 
         return Result<Role>.Success(role);
@@ -90,7 +90,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
 
         if (role == null)
         {
-            return Result.Failure(ResultError.NotFound, $"The role with this guid doesn't exists");
+            return Result.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
         }
 
         await roleRepository.DeleteRole(guid);

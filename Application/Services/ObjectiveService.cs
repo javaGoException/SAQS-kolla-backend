@@ -18,7 +18,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         if (objective == null)
         {
-            return Result<Objective>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+            return Result<Objective>.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
         }
 
         return Result<Objective>.Success(objective);
@@ -50,7 +50,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         if (objective == null)
         {
-            return Result.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+            return Result.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
         }
 
         await objectiveRepository.DeleteObjective(guid);

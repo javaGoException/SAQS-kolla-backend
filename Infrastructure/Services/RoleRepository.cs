@@ -61,12 +61,13 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return guids;
     }
 
-    public async Task InsertRole(Role role)
+    public async Task<bool> InsertRole(Role role)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "INSERT INTO Roles(Guid, DisplayName, Description, IsAdmin) VALUES (@Guid, @DisplayName, @Description, @IsAdmin);";
 
-        await connection.ExecuteAsync(sql, role);
+        var affectedRows = await connection.ExecuteAsync(sql, role);
+        return affectedRows > 0;
     }
 
     public async Task<bool> UpdateDisplayName(Guid guid, string displayName)
