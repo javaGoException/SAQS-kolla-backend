@@ -2,12 +2,13 @@ using Dapper;
 using SAQS_kolla_backend.Domain.ValueObjects;
 using SAQS_kolla_backend.Infrastructure.DTOs;
 using SAQS_kolla_backend.Application.Interfaces;
+using SAQS_kolla_backend.Infrastructure.Setup;
 
 namespace SAQS_kolla_backend.Infrastructure.Services;
 
 public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleRepository
 {
-    public async Task<Role?> QueryRole(Guid guid)
+    async Task<Role?> IRoleRepository.QueryRole(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT * FROM Roles r WHERE r.Guid = @Guid;";
@@ -29,10 +30,10 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return role;
     }
 
-    public async Task<Role?> QueryRole(string name)
+    async Task<Role?> IRoleRepository.QueryRole(string name)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT * FROM Roles r WHERE r.Name = @Name;";
+        string sql = "SELECT * FROM Roles r WHERE r.DisplayName = @Name;";
 
         RoleDto? roleDto = await connection.QuerySingleOrDefaultAsync<RoleDto>(sql, new {Name = name});
 
@@ -51,7 +52,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return role;
     }
 
-    public async Task<List<Guid>> QueryAllRolesGuids()
+    async Task<List<Guid>> IRoleRepository.QueryAllRolesGuids()
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT Guid FROM Roles;";
@@ -61,7 +62,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return guids;
     }
 
-    public async Task<bool> InsertRole(Role role)
+    async Task<bool> IRoleRepository.InsertRole(Role role)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "INSERT INTO Roles(Guid, DisplayName, Description, IsAdmin) VALUES (@Guid, @DisplayName, @Description, @IsAdmin);";
@@ -70,7 +71,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return affectedRows > 0;
     }
 
-    public async Task<bool> UpdateDisplayName(Guid guid, string displayName)
+    async Task<bool> IRoleRepository.UpdateDisplayName(Guid guid, string displayName)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Roles SET DisplayName = @DisplayName WHERE Guid = @Guid;";
@@ -79,7 +80,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return affectedRows > 0;
     }
 
-    public async Task<bool> UpdateDescription(Guid guid, string? description)
+    async Task<bool> IRoleRepository.UpdateDescription(Guid guid, string? description)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Roles SET Description = @Description WHERE Guid = @Guid;";
@@ -88,7 +89,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return affectedRows > 0;
     }
 
-    public async Task<bool> UpdateAdminFlag(Guid guid, bool isAdmin)
+    async Task<bool> IRoleRepository.UpdateAdminFlag(Guid guid, bool isAdmin)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Roles SET IsAdmin = @IsAdmin WHERE Guid = @Guid;";
@@ -97,7 +98,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
         return affectedRows > 0;
     }
 
-    public async Task<bool> DeleteRole(Guid guid)
+    async Task<bool> IRoleRepository.DeleteRole(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "DELETE FROM Roles WHERE Guid = @Guid;";

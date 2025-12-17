@@ -6,13 +6,13 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjectiveService
 {
-    public async Task<Result<List<Guid>>> GetAllGuids()
+    async Task<Result<List<Guid>>> IObjectiveService.GetAllGuids()
     {
         List<Guid> guids = await objectiveRepository.QueryAllObjectivesGuids();
         return Result<List<Guid>>.Success(guids);
     }
 
-    public async Task<Result<Objective>> Get(Guid guid)
+    async Task<Result<Objective>> IObjectiveService.Get(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 
@@ -24,7 +24,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Objective>.Success(objective);
     }
 
-    public async Task<Result<Guid>> Create(string name, string? description)
+    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description)
     {
         Objective? existingObjective = await objectiveRepository.QueryObjective(name);
 
@@ -44,7 +44,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Guid>.Success(objective.Guid);
     }
 
-    public async Task<Result> Delete(Guid guid)
+    async Task<Result> IObjectiveService.Delete(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 

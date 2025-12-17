@@ -2,12 +2,13 @@ using Dapper;
 using SAQS_kolla_backend.Domain.ValueObjects;
 using SAQS_kolla_backend.Infrastructure.DTOs;
 using SAQS_kolla_backend.Application.Interfaces;
+using SAQS_kolla_backend.Infrastructure.Setup;
 
 namespace SAQS_kolla_backend.Infrastructure.Services;
 
 public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObjectiveRepository
 {
-    public async Task<Objective?> QueryObjective(Guid guid)
+    async Task<Objective?> IObjectiveRepository.QueryObjective(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT * FROM Objectives o WHERE o.Guid = @Guid;";
@@ -28,7 +29,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return objective;
     }
 
-    public async Task<Objective?> QueryObjective(string name)
+    async Task<Objective?> IObjectiveRepository.QueryObjective(string name)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT * FROM Objectives o WHERE o.DisplayName = @Name;";
@@ -49,7 +50,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return objective;
     }
 
-    public async Task<List<Guid>> QueryAllObjectivesGuids()
+    async Task<List<Guid>> IObjectiveRepository.QueryAllObjectivesGuids()
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT Guid FROM Objectives;";
@@ -59,7 +60,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return guids;
     }
 
-    public async Task<bool> InsertObjective(Objective objective)
+    async Task<bool> IObjectiveRepository.InsertObjective(Objective objective)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description);";
@@ -68,7 +69,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         return affectedRows > 0;
     }
 
-    public async Task<bool> DeleteObjective(Guid guid)
+    async Task<bool> IObjectiveRepository.DeleteObjective(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "DELETE FROM Objectives WHERE Guid = @Guid;";

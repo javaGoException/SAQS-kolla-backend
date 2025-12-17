@@ -6,13 +6,13 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class RoleService(IRoleRepository roleRepository) : IRoleService
 {
-    public async Task<Result<List<Guid>>> GetAllGuids()
+    async Task<Result<List<Guid>>> IRoleService.GetAllGuids()
     {
         List<Guid> guids = await roleRepository.QueryAllRolesGuids();
         return Result<List<Guid>>.Success(guids);
     }
 
-    public async Task<Result<Role>> Get(Guid guid)
+    async Task<Result<Role>> IRoleService.Get(Guid guid)
     {
         Role? role = await roleRepository.QueryRole(guid);
 
@@ -24,7 +24,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result<Role>.Success(role);
     }
 
-    public async Task<Result<Guid>> Create(string name, string? description, bool isAdmin)
+    async Task<Result<Guid>> IRoleService.Create(string name, string? description, bool isAdmin)
     {
         Role? existingRole = await roleRepository.QueryRole(name);
 
@@ -45,7 +45,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result<Guid>.Success(role.Guid);
     }
 
-    public async Task<Result> SetDisplayName(Guid guid, string displayName)
+    async Task<Result> IRoleService.SetDisplayName(Guid guid, string displayName)
     {
         Role? role = await roleRepository.QueryRole(guid);
 
@@ -58,7 +58,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result.Success();
     }
 
-    public async Task<Result> SetDescription(Guid guid, string? description)
+    async Task<Result> IRoleService.SetDescription(Guid guid, string? description)
     {
         Role? role = await roleRepository.QueryRole(guid);
 
@@ -71,7 +71,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result.Success();
     }
 
-    public async Task<Result> SetAdminFlag(Guid guid, bool isAdmin)
+    async Task<Result> IRoleService.SetAdminFlag(Guid guid, bool isAdmin)
     {
         Role? role = await roleRepository.QueryRole(guid);
 
@@ -84,7 +84,7 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result.Success();
     }
 
-    public async Task<Result> Delete(Guid guid)
+    async Task<Result> IRoleService.Delete(Guid guid)
     {
         Role? role = await roleRepository.QueryRole(guid);
 

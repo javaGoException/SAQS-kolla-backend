@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace SAQS_kolla_backend.Infrastructure.Services;
+namespace SAQS_kolla_backend.Infrastructure.Setup;
 
 public interface IDatabaseConnector
 {
