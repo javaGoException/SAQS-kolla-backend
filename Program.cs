@@ -7,22 +7,26 @@ using SAQS_kolla_backend.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 
 builder.Services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
-builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
 builder.Services.AddScoped<IDatabaseConnector, SqliteConnector>();
 builder.Services.AddSingleton<SqliteInitializer>();
-builder.Services.AddSingleton<ValidatorService>();
 
 builder.Services.AddOptions<DatabaseOptions>()
     .BindConfiguration("DatabaseOptions")
     .Validate(opts => opts.Validate())
     .ValidateOnStart();
 
+builder.Services.AddValidation();
+
 var app = builder.Build();
 ObjectiveEndpoints.Map(app);
 RoleEndpoints.Map(app);
+AssignmentEndpoints.Map(app);
 
 using (var scope = app.Services.CreateScope())
 {

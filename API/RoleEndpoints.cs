@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SAQS_kolla_backend.API.DTOs;
+using SAQS_kolla_backend.API.DTOs.Role;
 using SAQS_kolla_backend.Application;
 using SAQS_kolla_backend.Application.Common;
 using SAQS_kolla_backend.Application.Interfaces;
@@ -22,14 +22,9 @@ public static class RoleEndpoints
             return Results.Ok(result.Data);
         });
 
-        app.MapGet("Role/Get/{guid}", async (ValidatorService validatorService, IRoleService roleService, string? guid) =>
+        app.MapGet("Role/Get/{guid}", async (Guid guid, IRoleService roleService) =>
         {
-            if (validatorService.isGuidValid(guid) == false)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
-            Result<Role> result = await roleService.Get(Guid.Parse(guid!));
+            Result<Role> result = await roleService.Get(guid);
             if(result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -38,19 +33,14 @@ public static class RoleEndpoints
             return Results.Ok(result.Data);
         });
 
-        app.MapPost("Role/Create", async ([FromBody] RoleCreateRequest? roleCreateRequest, IRoleService roleService) =>
+        app.MapPost("Role/Create", async ([FromBody] RoleCreateRequest roleCreateRequest, IRoleService roleService) =>
         {
-            if (roleCreateRequest == null)
+            if (string.IsNullOrEmpty(roleCreateRequest.DisplayName))
             {
-                return Results.BadRequest(new {error = "Request body is required"});
+                return Results.BadRequest(new {error = "DisplayName is required"});
             }
 
-            if (string.IsNullOrEmpty(roleCreateRequest.Name))
-            {
-                return Results.BadRequest(new {error = "Role name is required"});
-            }
-
-            Result<Guid> result = await roleService.Create(roleCreateRequest.Name, roleCreateRequest.Description, roleCreateRequest.isAdmin);
+            Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.isAdmin);
 
             if(result.IsSuccess == false)
             {
@@ -60,24 +50,14 @@ public static class RoleEndpoints
             return Results.Ok(new {guid = result.Data});
         });
 
-        app.MapPatch("Role/SetDisplayName", async ([FromBody] RoleSetDisplayNameRequest? roleSetDisplayNameRequest, ValidatorService validatorService, IRoleService roleService) =>
+        app.MapPatch("Role/SetDisplayName", async ([FromBody] RoleSetDisplayNameRequest roleSetDisplayNameRequest, IRoleService roleService) =>
         {
-            if (roleSetDisplayNameRequest == null)
-            {
-                return Results.BadRequest(new {error = "Request body is required"});
-            }
-
-            if (validatorService.isGuidValid(roleSetDisplayNameRequest.Guid) == false)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
             if (string.IsNullOrEmpty(roleSetDisplayNameRequest.DisplayName))
             {
                 return Results.BadRequest(new {error = "DisplayName is required"});
             }
 
-            Result result = await roleService.SetDisplayName(Guid.Parse(roleSetDisplayNameRequest.Guid!), roleSetDisplayNameRequest.DisplayName);
+            Result result = await roleService.SetDisplayName(roleSetDisplayNameRequest.Guid, roleSetDisplayNameRequest.DisplayName);
 
             if(result.IsSuccess == false)
             {
@@ -87,19 +67,9 @@ public static class RoleEndpoints
             return Results.NoContent();
         });
 
-        app.MapPatch("Role/SetDescription", async ([FromBody] RoleSetDescriptionRequest? roleSetDescriptionRequest, ValidatorService validatorService, IRoleService roleService) =>
+        app.MapPatch("Role/SetDescription", async ([FromBody] RoleSetDescriptionRequest roleSetDescriptionRequest, IRoleService roleService) =>
         {
-            if (roleSetDescriptionRequest == null)
-            {
-                return Results.BadRequest(new {error = "Request body is required"});
-            }
-
-            if (validatorService.isGuidValid(roleSetDescriptionRequest.Guid) == false)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
-            Result result = await roleService.SetDescription(Guid.Parse(roleSetDescriptionRequest.Guid!), roleSetDescriptionRequest.Description);
+            Result result = await roleService.SetDescription(roleSetDescriptionRequest.Guid, roleSetDescriptionRequest.Description);
 
             if(result.IsSuccess == false)
             {
@@ -109,19 +79,9 @@ public static class RoleEndpoints
             return Results.NoContent();
         });
 
-        app.MapPatch("Role/SetAdminFlag", async ([FromBody] RoleSetAdminFlagRequest? roleSetAdminFlagRequest, ValidatorService validatorService, IRoleService roleService) =>
+        app.MapPatch("Role/SetAdminFlag", async ([FromBody] RoleSetAdminFlagRequest roleSetAdminFlagRequest, IRoleService roleService) =>
         {
-            if (roleSetAdminFlagRequest == null)
-            {
-                return Results.BadRequest(new {error = "Request body is required"});
-            }
-
-            if (validatorService.isGuidValid(roleSetAdminFlagRequest.Guid) == false)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
-            Result result = await roleService.SetAdminFlag(Guid.Parse(roleSetAdminFlagRequest.Guid!), roleSetAdminFlagRequest.isAdmin);
+            Result result = await roleService.SetAdminFlag(roleSetAdminFlagRequest.Guid, roleSetAdminFlagRequest.isAdmin);
 
             if(result.IsSuccess == false)
             {
@@ -131,14 +91,9 @@ public static class RoleEndpoints
             return Results.NoContent();
         });
 
-        app.MapDelete("Role/Delete/{guid}", async (string? guid, ValidatorService validatorService, IRoleService roleService) =>
+        app.MapDelete("Role/Delete/{guid}", async (Guid guid, IRoleService roleService) =>
         {
-            if (validatorService.isGuidValid(guid) == false)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
-            Result result = await roleService.Delete(Guid.Parse(guid!));
+            Result result = await roleService.Delete(guid);
 
             if(result.IsSuccess == false)
             {
