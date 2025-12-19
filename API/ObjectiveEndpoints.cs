@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using SAQS_kolla_backend.API.DTOs;
+using SAQS_kolla_backend.API.DTOs.Objective;
 using SAQS_kolla_backend.Application;
 using SAQS_kolla_backend.Application.Common;
 using SAQS_kolla_backend.Application.Interfaces;
@@ -13,7 +13,7 @@ public static class ObjectiveEndpoints
     {
         app.MapGet("Objective/GetAll",async (IObjectiveService objectiveService) =>
         {
-            Result<List<Guid>> result = await objectiveService.GetAllObjectivesGuid();
+            Result<List<Guid>> result = await objectiveService.GetAllGuids();
             if (result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -22,23 +22,9 @@ public static class ObjectiveEndpoints
             return Results.Ok(result.Data);
         });
 
-        app.MapGet("Objective/Get/{guid}", async (IObjectiveService objectiveService, string? guid) =>
+        app.MapGet("Objective/Get/{guid}", async (Guid guid, IObjectiveService objectiveService) =>
         {
-            if (string.IsNullOrEmpty(guid))
-            {
-                return Results.NotFound();
-            }
-
-            try
-            {
-                Guid.Parse(guid);
-            } 
-            catch (FormatException)
-            {
-                return Results.BadRequest(new {error = "GUID is invalid"});
-            }
-
-            Result<Objective> result = await objectiveService.GetObjective(Guid.Parse(guid));
+            Result<Objective> result = await objectiveService.Get(guid);
             if(result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -47,24 +33,14 @@ public static class ObjectiveEndpoints
             return Results.Ok(result.Data);
         });
 
-        app.MapPost("Objective/Create", async ([FromBody] CreateObjectiveRequest? createObjectiveRequest, IObjectiveService objectiveService) =>
+        app.MapPost("Objective/Create", async ([FromBody] ObjectiveCreateRequest objectiveCreateRequest, IObjectiveService objectiveService) =>
         {
-            if (createObjectiveRequest == null)
+            if (string.IsNullOrEmpty(objectiveCreateRequest.DisplayName))
             {
-                return Results.BadRequest(new {error = "Request body is required"});
+                return Results.BadRequest(new {error = "DisplayName is required"});
             }
 
-            if (string.IsNullOrEmpty(createObjectiveRequest.Name))
-            {
-                return Results.BadRequest(new {error = "Objective name is required"});
-            }
-
-            if (string.IsNullOrEmpty(createObjectiveRequest.Description))
-            {
-                return Results.BadRequest(new {error = "Objective description is required"});
-            }
-
-            Result<Guid> result = await objectiveService.CreateObjective(createObjectiveRequest.Name, createObjectiveRequest.Description);
+            Result<Guid> result = await objectiveService.Create(objectiveCreateRequest.DisplayName, objectiveCreateRequest.Description);
 
             if(result.IsSuccess == false)
             {
@@ -74,33 +50,16 @@ public static class ObjectiveEndpoints
             return Results.Ok(new {guid = result.Data});
         });
 
-        app.MapDelete("Objective/Delete/{guid}", async (IObjectiveService objectiveService, string guid) =>
+        app.MapDelete("Objective/Delete/{guid}", async (Guid guid, IObjectiveService objectiveService) =>
         {
-            if (string.IsNullOrEmpty(guid))
-            {
-                return Results.BadRequest(new { error = "GUID is required" });
-            }
+            Result result = await objectiveService.Delete(guid);
 
-            Guid parsedGuid;
-            try
-            {
-                parsedGuid = Guid.Parse(guid);
-            }
-            catch (FormatException)
-            {
-                return Results.BadRequest(new { error = "GUID is invalid" });
-            }
-
-            // Aufruf des Services
-            Result<Guid> result = await objectiveService.DeleteObjective(parsedGuid);
-
-            if (result.IsSuccess == false)
+            if(result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
-            // Erfolgreich gelöscht -> Rückgabe der GUID
-            return Results.Ok(new { guid = result.Data });
+            return Results.NoContent();
         });
     }
 }

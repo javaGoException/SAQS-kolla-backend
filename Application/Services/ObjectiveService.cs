@@ -6,29 +6,31 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjectiveService
 {
-    public async Task<Result<List<Guid>>> GetAllObjectivesGuid()
+    async Task<Result<List<Guid>>> IObjectiveService.GetAllGuids()
     {
         List<Guid> guids = await objectiveRepository.QueryAllObjectivesGuids();
         return Result<List<Guid>>.Success(guids);
     }
 
-    public async Task<Result<Objective>> GetObjective(Guid guid)
+    async Task<Result<Objective>> IObjectiveService.Get(Guid guid)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 
         if (objective == null)
         {
-            return Result<Objective>.Failure(ResultError.NotFound, $"There is no objective with guid: {guid}");
+            return Result<Objective>.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
         }
 
         return Result<Objective>.Success(objective);
     }
 
-    public async Task<Result<Guid>> CreateObjective(string name, string description)
+    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description)
     {
-        if (string.IsNullOrEmpty(name))
+        Objective? existingObjective = await objectiveRepository.QueryObjective(name);
+
+        if (existingObjective != null)
         {
-            return Result<Guid>.Failure(ResultError.ValidationError, "Objective name cannot be empty");
+            return Result<Guid>.Failure(ResultError.Conflict, "The objective with this name already exists");
         }
 
         Objective objective = new()
@@ -41,16 +43,18 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         return Result<Guid>.Success(objective.Guid);
     }
-    
-    public async Task<Result<Guid>> DeleteObjective(Guid guid)
-    {
-        Objective? existingObjective = await objectiveRepository.QueryObjective(guid);
 
-        if (existingObjective == null)
+    async Task<Result> IObjectiveService.Delete(Guid guid)
+    {
+        Objective? objective = await objectiveRepository.QueryObjective(guid);
+
+        if (objective == null)
         {
-            return Result<Guid>.Failure(ResultError.NotFound, $"Objective with guid {guid} not found.");
+            return Result.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
         }
+
         await objectiveRepository.DeleteObjective(guid);
-        return Result<Guid>.Success(guid);
+
+        return Result.Success();
     }
 }
