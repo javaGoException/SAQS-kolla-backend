@@ -77,7 +77,7 @@ public static class ObjectiveEndpoints
             return Results.NoContent();
         });
 
-        app.MapPatch("SetObjectiveDisplayName", async (string? guid, string? displayName, ValidatorService validatorService, IObjectiveService objectiveService) =>
+        app.MapPatch("Objective/SetObjectiveDisplayName", async (string? guid, string? displayName, ValidatorService validatorService, IObjectiveService objectiveService) =>
         {
             if(validatorService.isGuidValid(guid)==false)
             {

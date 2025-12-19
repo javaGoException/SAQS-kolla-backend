@@ -31,7 +31,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
     public async Task<Objective?> QueryObjective(string name)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT * FROM Objectives o WHERE o.Name = @Name;";
+        string sql = "SELECT * FROM Objectives o WHERE o.DisplayName = @Name;";
 
         ObjectiveDto? objectiveDto = await connection.QuerySingleOrDefaultAsync<ObjectiveDto>(sql, new {Name = name});
 
@@ -79,7 +79,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
     public async Task<bool> UpdateDisplayName(Guid guid, string? displayName)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "UPDATE Objectives SET Name = @DisplayName WHERE Guid = @Guid;";
+        string sql = "UPDATE Objectives SET DisplayName = @Name WHERE Guid = @Guid;";
 
         var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid, Name = displayName});
         return affectedRows > 0;
