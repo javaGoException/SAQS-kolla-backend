@@ -35,11 +35,6 @@ public static class RoleEndpoints
 
         app.MapPost("Role/Create", async ([FromBody] RoleCreateRequest roleCreateRequest, IRoleService roleService) =>
         {
-            if (string.IsNullOrEmpty(roleCreateRequest.DisplayName))
-            {
-                return Results.BadRequest(new {error = "DisplayName is required"});
-            }
-
             Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.isAdmin);
 
             if(result.IsSuccess == false)
@@ -52,11 +47,6 @@ public static class RoleEndpoints
 
         app.MapPatch("Role/SetDisplayName", async ([FromBody] RoleSetDisplayNameRequest roleSetDisplayNameRequest, IRoleService roleService) =>
         {
-            if (string.IsNullOrEmpty(roleSetDisplayNameRequest.DisplayName))
-            {
-                return Results.BadRequest(new {error = "DisplayName is required"});
-            }
-
             Result result = await roleService.SetDisplayName(roleSetDisplayNameRequest.Guid, roleSetDisplayNameRequest.DisplayName);
 
             if(result.IsSuccess == false)

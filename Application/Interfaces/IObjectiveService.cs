@@ -8,5 +8,7 @@ public interface IObjectiveService
     Task<Result<List<Guid>>> GetAllGuids();
     Task<Result<Objective>> Get(Guid guid);
     Task<Result<Guid>> Create(string name, string? description);
+    Task<Result> SetDisplayName(Guid guid, string name);
+    Task<Result> SetDescription(Guid guid, string? description);
     Task<Result> Delete(Guid guid);
 }

@@ -36,11 +36,6 @@ public static class AssignmentEndpoints
 
         app.MapPost("Assignment/Create", async ([FromBody] AssignmentCreateRequest assignmentCreateRequest, IAssignmentService assignmentService) =>
         {
-            if (string.IsNullOrEmpty(assignmentCreateRequest.DisplayName))
-            {
-                return Results.BadRequest(new {error = "DisplayName is required"});
-            }
-
             Result<Guid> result = await assignmentService.Create(
                 assignmentCreateRequest.DisplayName,
                 assignmentCreateRequest.Description,
@@ -60,11 +55,6 @@ public static class AssignmentEndpoints
 
         app.MapPost("Assignment/SetDisplayName", async ([FromBody] AssignmentSetDisplayNameRequest assignmentSetDisplayNameRequest, IAssignmentService assignmentService) =>
         {
-            if (string.IsNullOrEmpty(assignmentSetDisplayNameRequest.DisplayName))
-            {
-                return Results.BadRequest(new {error = "DisplayName is required"});
-            }
-
             Result result = await assignmentService.SetDisplayName(
                 assignmentSetDisplayNameRequest.Guid,
                 assignmentSetDisplayNameRequest.DisplayName
