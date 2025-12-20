@@ -1,8 +1,9 @@
 namespace SAQS_kolla_backend.Infrastructure.DTOs;
 
-public record RoleDto(
-    string Guid, 
-    string DisplayName, 
-    string? Description,
-    bool IsAdmin
-);
+public class RoleDto
+{
+    public required string Guid { get; set; }
+    public required string DisplayName { get; set; }
+    public string? Description { get; set; }
+    public bool IsAdmin { get; set; }
+}
