@@ -1,6 +1,6 @@
 using SAQS_kolla_backend.Application.Common;
 
-namespace SAQS_kolla_backend.Application;
+namespace SAQS_kolla_backend.API;
 
 public static class ErrorMapper
 {

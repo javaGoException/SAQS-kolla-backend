@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SAQS_kolla_backend.API.DTOs.Actor;
 
-public record ActorSetRoleRequest(
+public record ActorSetDisplayNameRequest(
     [Required] Guid Guid,
-    Guid? RoleGuid
+    [Required] string DisplayName
 );

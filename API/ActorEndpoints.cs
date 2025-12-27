@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using SAQS_kolla_backend.API.DTOs.Actor;
-using SAQS_kolla_backend.Application;
 using SAQS_kolla_backend.Application.Common;
 using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Domain.ValueObjects;
@@ -33,12 +32,7 @@ public static class ActorEndpoints
 
         app.MapPost("Actor/Create", async ([FromBody] ActorCreateRequest request, IActorService actorService) =>
         {
-            if (string.IsNullOrEmpty(request.Nickname))
-            {
-                return Results.BadRequest(new { error = "Nickname is required" });
-            }
-
-            Result<Guid> result = await actorService.Create(request.Nickname, request.RoleGuid);
+            Result<Guid> result = await actorService.Create(request.DisplayName, request.RoleGuid);
 
             if (result.IsSuccess == false)
             {
@@ -48,14 +42,9 @@ public static class ActorEndpoints
             return Results.Ok(new { guid = result.Data });
         });
 
-        app.MapPatch("Actor/SetNickname", async ([FromBody] ActorSetNicknameRequest request, IActorService actorService) =>
+        app.MapPatch("Actor/SetDisplayName", async ([FromBody] ActorSetDisplayNameRequest request, IActorService actorService) =>
         {
-            if (string.IsNullOrEmpty(request.Nickname))
-            {
-                return Results.BadRequest(new { error = "Nickname is required" });
-            }
-
-            Result result = await actorService.SetNickname(request.Guid, request.Nickname);
+            Result result = await actorService.SetDisplayName(request.Guid, request.DisplayName);
 
             if (result.IsSuccess == false)
             {

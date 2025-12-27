@@ -44,7 +44,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Guid>.Success(objective.Guid);
     }
 
-    public async Task<Result> SetDisplayName(Guid guid, string displayName)
+    async Task<Result> IObjectiveService.SetDisplayName(Guid guid, string displayName)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 
@@ -58,7 +58,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result.Success();
     }
 
-    public async Task<Result> SetDescription(Guid guid, string? description)
+    async Task<Result> IObjectiveService.SetDescription(Guid guid, string? description)
     {
         Objective? objective = await objectiveRepository.QueryObjective(guid);
 

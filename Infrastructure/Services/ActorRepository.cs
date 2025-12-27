@@ -6,84 +6,63 @@ using SAQS_kolla_backend.Infrastructure.Setup;
 
 namespace SAQS_kolla_backend.Infrastructure.Services;
 
-public class ActorRepository(IDatabaseConnector databaseConnector) : IActorRepository
+public class ActorRepository(IDatabaseConnector databaseConnector, IRoleRepository roleRepository) : IActorRepository
 {
-    public async Task<Actor?> QueryActor(Guid guid)
+    async Task<Actor?> IActorRepository.QueryActor(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        
-        // Wir machen einen JOIN, um die Role-Daten direkt mitzuladen
-        string sql = @"
-            SELECT 
-                a.Guid, a.DisplayName, a.RoleGuid,
-                r.Guid, r.DisplayName, r.Description, r.IsAdmin
-            FROM Actors a
-            LEFT JOIN Roles r ON a.RoleGuid = r.Guid
-            WHERE a.Guid = @Guid;";
+        string sql = "SELECT * FROM Actors a WHERE a.Guid = @Guid;";
 
-        // Wir nutzen Dappers Multi-Mapping Feature
-        var result = await connection.QueryAsync<ActorDto, RoleDto?, Actor>(
-            sql,
-            (actorDto, roleDto) =>
-            {
-                var actor = new Actor
-                {
-                    Guid = Guid.Parse(actorDto.Guid),
-                    DisplayName = actorDto.DisplayName,
-                    Role = roleDto == null ? null : new Role
-                    {
-                        Guid = Guid.Parse(roleDto.Guid),
-                        DisplayName = roleDto.DisplayName,
-                        Description = roleDto.Description,
-                        IsAdmin = roleDto.IsAdmin
-                    }
-                };
-                return actor;
-            },
-            new { Guid = guid },
-            splitOn: "Guid" // Dapper Splitter, da beide Tabellen 'Guid' als erste Spalte haben
-        );
+        ActorDto? actorDto = await connection.QuerySingleOrDefaultAsync<ActorDto>(sql, new {Guid = guid});
 
-        return result.SingleOrDefault();
+        if (actorDto == null)
+        {
+            return null;
+        }
+
+        Role? role = null;
+        if (actorDto.RoleGuid != null)
+        {
+            role = await roleRepository.QueryRole(actorDto.RoleGuid); 
+        }
+
+        Actor actor = new()
+        {
+            Guid = Guid.Parse(actorDto.Guid),
+            DisplayName = actorDto.DisplayName,
+            Role = role
+        };
+        return actor;
     }
 
-    public async Task<Actor?> QueryActorByNickname(string nickname)
+    async Task<Actor?> IActorRepository.QueryActor(string displayName)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        
-        string sql = @"
-            SELECT 
-                a.Guid, a.DisplayName, a.RoleGuid,
-                r.Guid, r.DisplayName, r.Description, r.IsAdmin
-            FROM Actors a
-            LEFT JOIN Roles r ON a.RoleGuid = r.Guid
-            WHERE a.DisplayName = @Nickname;";
+        string sql = "SELECT * FROM Actors a WHERE a.DisplayName = @DisplayName;";
 
-        var result = await connection.QueryAsync<ActorDto, RoleDto?, Actor>(
-            sql,
-            (actorDto, roleDto) =>
-            {
-                return new Actor
-                {
-                    Guid = Guid.Parse(actorDto.Guid),
-                    DisplayName = actorDto.DisplayName,
-                    Role = roleDto == null ? null : new Role
-                    {
-                        Guid = Guid.Parse(roleDto.Guid),
-                        DisplayName = roleDto.DisplayName,
-                        Description = roleDto.Description,
-                        IsAdmin = roleDto.IsAdmin
-                    }
-                };
-            },
-            new { Nickname = nickname },
-            splitOn: "Guid"
-        );
+        ActorDto? actorDto = await connection.QuerySingleOrDefaultAsync<ActorDto>(sql, new {DisplayName = displayName});
 
-        return result.SingleOrDefault();
+        if (actorDto == null)
+        {
+            return null;
+        }
+
+        Role? role = null;
+        if (actorDto.RoleGuid != null)
+        {
+            role = await roleRepository.QueryRole(actorDto.RoleGuid); 
+        }
+
+        Actor actor = new()
+        {
+            Guid = Guid.Parse(actorDto.Guid),
+            DisplayName = actorDto.DisplayName,
+            Role = role
+        };
+        return actor;
     }
 
-    public async Task<List<Guid>> QueryAllActorGuids()
+    async Task<List<Guid>> IActorRepository.QueryAllActorGuids()
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "SELECT Guid FROM Actors;";
@@ -92,7 +71,7 @@ public class ActorRepository(IDatabaseConnector databaseConnector) : IActorRepos
         return stringGuids.Select(g => Guid.Parse(g)).ToList();
     }
 
-    public async Task<bool> InsertActor(Actor actor, Guid? roleGuid)
+    async Task<bool> IActorRepository.InsertActor(Actor actor, Guid? roleGuid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "INSERT INTO Actors(Guid, DisplayName, RoleGuid) VALUES (@Guid, @DisplayName, @RoleGuid);";
@@ -105,16 +84,16 @@ public class ActorRepository(IDatabaseConnector databaseConnector) : IActorRepos
         return affectedRows > 0;
     }
 
-    public async Task<bool> UpdateNickname(Guid guid, string nickname)
+    async Task<bool> IActorRepository.UpdateDisplayName(Guid guid, string DisplayName)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Actors SET DisplayName = @DisplayName WHERE Guid = @Guid;";
 
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, DisplayName = nickname });
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, DisplayName = DisplayName });
         return affectedRows > 0;
     }
 
-    public async Task<bool> UpdateRole(Guid guid, Guid? roleGuid)
+    async Task<bool> IActorRepository.UpdateRole(Guid guid, Guid? roleGuid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Actors SET RoleGuid = @RoleGuid WHERE Guid = @Guid;";
