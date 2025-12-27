@@ -9,9 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IObjectiveService, ObjectiveService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IActorService, ActorService>();
 
 builder.Services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
+builder.Services.AddScoped<IActorRepository, ActorRepository>();
 
 builder.Services.AddScoped<IDatabaseConnector, SqliteConnector>();
 builder.Services.AddSingleton<SqliteInitializer>();
@@ -27,6 +30,7 @@ var app = builder.Build();
 ObjectiveEndpoints.Map(app);
 RoleEndpoints.Map(app);
 AssignmentEndpoints.Map(app);
+ActorEndpoints.Map(app);
 
 using (var scope = app.Services.CreateScope())
 {
