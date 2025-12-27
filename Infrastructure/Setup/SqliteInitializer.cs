@@ -12,6 +12,7 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
     {
         await CreateObjectivesTable();
         await CreateRolesTable();
+        await CreateActorsTable();
         await CreateAssignmentTable();
     }
 
@@ -35,6 +36,17 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         DisplayName TEXT NOT NULL,
         Description TEXT,
         IsAdmin INTEGER NOT NULL
+        );");
+    }
+
+    private async Task CreateActorsTable()
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        await connection.ExecuteAsync(@"
+        CREATE TABLE IF NOT EXISTS Actors(
+        Guid TEXT PRIMARY KEY,
+        DisplayName TEXT NOT NULL,
+        RoleGuid TEXT
         );");
     }
 
