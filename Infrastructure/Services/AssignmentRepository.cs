@@ -23,7 +23,9 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         DateTimeOffset? startDateParsed = assignmentDto.StartDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.StartDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         DateTimeOffset? endDateParsed = assignmentDto.EndDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.EndDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         DateTimeOffset? deadlineDateParsed = assignmentDto.DeadlineDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.DeadlineDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-
+        Guid? assigneeGuidParsed = assignmentDto.AssigneeGuid == null ? null : Guid.Parse(assignmentDto.AssigneeGuid);
+        Guid? requiredRoleGuid = assignmentDto.RequiredRoleGuid == null ? null : Guid.Parse(assignmentDto.RequiredRoleGuid);
+        
         Assignment assignment = new()
         {
             Guid = Guid.Parse(assignmentDto.Guid),
@@ -32,8 +34,8 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
             StartDate = startDateParsed,
             EndDate = endDateParsed,
             DeadlineDate = deadlineDateParsed,
-            AssigneeGuid = assignmentDto.AssigneeGuid,
-            RequiredRoleGuid = assignmentDto.RequiredRoleGuid,
+            AssigneeGuid = assigneeGuidParsed,
+            RequiredRoleGuid = requiredRoleGuid,
             Priority = assignmentDto.Priority,
             Status = assignmentDto.Status
         };
@@ -101,6 +103,15 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         return affectedRows > 0;
     }
 
+    async Task<bool> IAssignmentRepository.UpdateEndDate(Guid guid, DateTimeOffset? endDate)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "UPDATE Assignments SET EndDate = @EndDate WHERE Guid = @Guid;";
+        
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, EndDate = endDate });
+        return affectedRows > 0;
+    }
+
     async Task<bool> IAssignmentRepository.UpdateDeadlineDate(Guid guid, DateTimeOffset? deadlineDate)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
@@ -120,14 +131,13 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
     }
 
     async Task<bool> IAssignmentRepository.UpdateRequiredRole(Guid guid, Guid? requiredRoleGuid)
-{
-    using var connection = await databaseConnector.OpenConnectionAsync();
-    string sql = "UPDATE Assignments SET RequiredRoleGuid = @RequiredRoleGuid WHERE Guid = @Guid;";
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "UPDATE Assignments SET RequiredRoleGuid = @RequiredRoleGuid WHERE Guid = @Guid;";
 
-    var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, RequiredRoleGuid = requiredRoleGuid });
-    return affectedRows > 0;
-}
-
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, RequiredRoleGuid = requiredRoleGuid });
+        return affectedRows > 0;
+    }
 
     async Task<bool> IAssignmentRepository.UpdatePriority(Guid guid, Priority priority)
     {

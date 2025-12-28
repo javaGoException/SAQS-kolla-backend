@@ -46,11 +46,21 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
     async Task<Result> IObjectiveService.SetDisplayName(Guid guid, string displayName)
     {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return Result.Failure(ResultError.ValidationError, "The display name is required");
+        }
+        
         Objective? objective = await objectiveRepository.QueryObjective(guid);
-
         if (objective == null)
         {
             return Result.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
+        }
+        
+        Objective? duplicate = await objectiveRepository.QueryObjective(displayName);
+        if (duplicate != null)
+        {
+            return Result.Failure(ResultError.Conflict, "The objective with this name already exist");
         }
 
         await objectiveRepository.UpdateDisplayName(guid, displayName);

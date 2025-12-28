@@ -12,6 +12,7 @@ public interface IAssignmentRepository
     Task<bool> UpdateDisplayName(Guid guid, string displayName);
     Task<bool> UpdateDescription(Guid guid, string? description);
     Task<bool> UpdateStartDate(Guid guid, DateTimeOffset? startDate);
+    Task<bool> UpdateEndDate(Guid guid, DateTimeOffset? endDate);
     Task<bool> UpdateDeadlineDate(Guid guid, DateTimeOffset? deadlineDate);
     Task<bool> UpdateAssignee(Guid guid, Guid? assigneeGuid);
     Task<bool> UpdateRequiredRole(Guid guid, Guid? requiredRoleGuid);

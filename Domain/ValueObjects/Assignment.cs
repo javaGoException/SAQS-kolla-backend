@@ -10,8 +10,8 @@ public class Assignment
     public DateTimeOffset? StartDate {get; set;}
     public DateTimeOffset? EndDate {get; set;}
     public DateTimeOffset? DeadlineDate {get; set;}
-    public string? AssigneeGuid {get; set;}
-    public string? RequiredRoleGuid {get; set;}
+    public Guid? AssigneeGuid {get; set;}
+    public Guid? RequiredRoleGuid {get; set;}
     public Priority Priority { get; set; } = Priority.MidTerm;
     public AssignmentStatus Status {get; set;} = AssignmentStatus.Planned;
 }

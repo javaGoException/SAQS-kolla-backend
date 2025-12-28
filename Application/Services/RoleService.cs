@@ -47,11 +47,21 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
 
     async Task<Result> IRoleService.SetDisplayName(Guid guid, string displayName)
     {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return Result.Failure(ResultError.ValidationError, "The display name is required");
+        }
+        
         Role? role = await roleRepository.QueryRole(guid);
-
         if (role == null)
         {
             return Result.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
+        }
+        
+        Role? duplicate = await roleRepository.QueryRole(displayName);
+        if (duplicate != null)
+        {
+            return Result.Failure(ResultError.Conflict, "The role with this name already exist");
         }
 
         await roleRepository.UpdateDisplayName(guid, displayName);

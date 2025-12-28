@@ -52,7 +52,7 @@ public static class AssignmentEndpoints
             return Results.Ok(new {guid = result.Data});
         });
 
-        app.MapPost("Assignment/SetDisplayName", async ([FromBody] AssignmentSetDisplayNameRequest assignmentSetDisplayNameRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDisplayName", async ([FromBody] AssignmentSetDisplayNameRequest assignmentSetDisplayNameRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDisplayName(
                 assignmentSetDisplayNameRequest.Guid,
@@ -66,8 +66,23 @@ public static class AssignmentEndpoints
 
             return Results.NoContent();
         });
+        
+        app.MapPatch("Assignment/Description", async ([FromBody] AssignmentSetDescriptionRequest assignmentSetDescriptionRequest, IAssignmentService assignmentService) =>
+        {
+            Result result = await assignmentService.SetDescription(
+                assignmentSetDescriptionRequest.Guid,
+                assignmentSetDescriptionRequest.Description
+            );
 
-        app.MapPost("Assignment/SetStartDate", async ([FromBody] AssignmentSetStartDateRequest assignmentSetStartDateRequest, IAssignmentService assignmentService) =>
+            if(result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
+
+        app.MapPatch("Assignment/SetStartDate", async ([FromBody] AssignmentSetStartDateRequest assignmentSetStartDateRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetStartDate(
                 assignmentSetStartDateRequest.Guid,
@@ -82,7 +97,7 @@ public static class AssignmentEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("Assignment/SetDeadlineDate", async ([FromBody] AssignmentSetDeadlineDateRequest assignmentSetDeadlineDateRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDeadlineDate", async ([FromBody] AssignmentSetDeadlineDateRequest assignmentSetDeadlineDateRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDeadlineDate(
                 assignmentSetDeadlineDateRequest.Guid,
@@ -97,7 +112,7 @@ public static class AssignmentEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("Assignment/SetAssignee", async ([FromBody] AssignmentSetAssigneeRequest assignmentSetAssigneeRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetAssignee", async ([FromBody] AssignmentSetAssigneeRequest assignmentSetAssigneeRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetAssignee(
                 assignmentSetAssigneeRequest.Guid,
@@ -111,8 +126,23 @@ public static class AssignmentEndpoints
 
             return Results.NoContent();
         });
+        
+        app.MapPatch("Assignment/SetRequiredRole", async ([FromBody] AssignmentSetRequiredRoleRequest assignmentSetRequiredRole, IAssignmentService assignmentService) =>
+        {
+            Result result = await assignmentService.SetRequiredRole(
+                assignmentSetRequiredRole.Guid,
+                assignmentSetRequiredRole.RequiredRoleGuid
+            );
 
-        app.MapPost("Assignment/SetPriority", async ([FromBody] AssignmentSetPriorityRequest assignmentSetPriorityRequest, IAssignmentService assignmentService) =>
+            if (result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+            
+            return Results.NoContent();
+        });
+        
+        app.MapPatch("Assignment/SetPriority", async ([FromBody] AssignmentSetPriorityRequest assignmentSetPriorityRequest, IAssignmentService assignmentService) =>
         {
             if (Enum.IsDefined(typeof(Priority), assignmentSetPriorityRequest.Priority) == false)
             {
@@ -132,7 +162,7 @@ public static class AssignmentEndpoints
             return Results.NoContent();
         });
 
-        app.MapPost("Assignment/SetStatus", async ([FromBody] AssignmentSetStatusRequest assignmentSetStatusRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetStatus", async ([FromBody] AssignmentSetStatusRequest assignmentSetStatusRequest, IAssignmentService assignmentService) =>
         {
             if (Enum.IsDefined(typeof(AssignmentStatus), assignmentSetStatusRequest.AssignmentStatus) == false)
             {

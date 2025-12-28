@@ -53,6 +53,11 @@ public class ActorService(IActorRepository actorRepository, IRoleRepository role
 
     async Task<Result> IActorService.SetDisplayName(Guid guid, string displayName)
     {
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return Result.Failure(ResultError.ValidationError, "The display name is required");
+        }
+        
         Actor? actor = await actorRepository.QueryActor(guid);
         if (actor == null)
         {
