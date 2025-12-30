@@ -101,4 +101,26 @@ public class ActorRepository(IDatabaseConnector databaseConnector, IRoleReposito
         var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, RoleGuid = roleGuid });
         return affectedRows > 0;
     }
+
+    async Task<List<Guid>> IActorRepository.QueryAllAssignments(Guid guid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "SELECT Guid FROM Assignments WHERE AssigneeGuid = @AssigneeGuid;";
+        
+        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql, new { AssigneeGuid = guid });
+        return stringGuids.Select(g => Guid.Parse(g)).ToList();
+    }
+    
+    async Task<bool> IActorRepository.Delete(Guid guid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        
+        string assignmentsSql = "UPDATE Assignments SET AssigneeGuid = NULL WHERE AssigneeGuid = @Guid;";
+        var assignmentsAffectedRows = await connection.ExecuteAsync(assignmentsSql, new {Guid = guid});
+        
+        string actorSql = "DELETE FROM Actors WHERE Guid = @Guid;";
+        var actorAffectedRows = await connection.ExecuteAsync(actorSql, new {Guid = guid});
+        
+        return assignmentsAffectedRows > 0 && actorAffectedRows > 0;
+    }
 }

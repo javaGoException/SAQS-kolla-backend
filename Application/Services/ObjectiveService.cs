@@ -81,6 +81,18 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
 
         return Result.Success();
     }
+    
+    async Task<Result<List<Guid>>> IObjectiveService.GetAllAssignments(Guid guid)
+    {
+        Objective? objective = await objectiveRepository.QueryObjective(guid);
+        if (objective == null)
+        {
+            return Result<List<Guid>>.Failure(ResultError.NotFound, "Objective with this guid doesn't exist");
+        }
+
+        List<Guid> assignments = await objectiveRepository.QueryAllAssignments(guid);
+        return Result<List<Guid>>.Success(assignments);
+    }
 
     async Task<Result> IObjectiveService.Delete(Guid guid)
     {

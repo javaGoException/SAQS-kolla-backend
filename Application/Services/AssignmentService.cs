@@ -5,7 +5,7 @@ using SAQS_kolla_backend.Domain.ValueObjects;
 
 namespace SAQS_kolla_backend.Application.Services;
 
-public class AssignmentService(IAssignmentRepository assignmentRepository, IActorRepository actorRepository, IRoleRepository roleRepository) : IAssignmentService
+public class AssignmentService(IAssignmentRepository assignmentRepository, IActorRepository actorRepository, IRoleRepository roleRepository, IObjectiveRepository objectiveRepository) : IAssignmentService
 {
     private Priority CalculatePriority(DateTimeOffset startDate, DateTimeOffset deadlineDate)
     {
@@ -254,6 +254,26 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         }
         
         await assignmentRepository.UpdateStatus(guid, assignmentStatus);
+        return Result.Success();
+    }
+    
+    async Task<Result> IAssignmentService.SetParentObjective(Guid guid, Guid? parentObjectiveGuid)
+    {
+        Assignment? assignment = await assignmentRepository.QueryAssignment(guid);
+        if (assignment == null)
+        {
+            return Result.Failure(ResultError.NotFound,"Assignment not found");
+        }
+
+        if (parentObjectiveGuid != null)
+        {
+            Objective? objective = await objectiveRepository.QueryObjective(parentObjectiveGuid.Value);
+            if (objective == null)
+            {
+                return Result.Failure(ResultError.NotFound,"Objective with this guid does not exist");
+            }
+        }
+        await assignmentRepository.UpdateParentObjective(guid, parentObjectiveGuid);
         return Result.Success();
     }
     

@@ -86,13 +86,26 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
         var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid, Description = description});
         return affectedRows > 0;
     }
+    
+    async Task<List<Guid>> IObjectiveRepository.QueryAllAssignments(Guid guid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "SELECT Guid FROM Assignments WHERE ParentObjectiveGuid = @ParentObjectiveGuid;";
+        
+        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql, new { ParentObjectiveGuid = guid });
+        return stringGuids.Select(g => Guid.Parse(g)).ToList();
+    }
 
     async Task<bool> IObjectiveRepository.DeleteObjective(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "DELETE FROM Objectives WHERE Guid = @Guid;";
-
-        var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid});
-        return affectedRows > 0;
+        
+        string assignmentsSql = "UPDATE Assignments SET ParentObjectiveGuid = NULL WHERE ParentObjectiveGuid = @Guid;";
+        var assignmentsAffectedRows = await connection.ExecuteAsync(assignmentsSql, new {Guid = guid});
+        
+        string objectiveSql = "DELETE FROM Objectives WHERE Guid = @Guid;";
+        var objectiveAffectedRows = await connection.ExecuteAsync(objectiveSql, new {Guid = guid});
+        
+        return assignmentsAffectedRows > 0 && objectiveAffectedRows > 0;
     }
 }

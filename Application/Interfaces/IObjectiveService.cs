@@ -10,5 +10,6 @@ public interface IObjectiveService
     Task<Result<Guid>> Create(string name, string? description);
     Task<Result> SetDisplayName(Guid guid, string name);
     Task<Result> SetDescription(Guid guid, string? description);
+    Task<Result<List<Guid>>> GetAllAssignments(Guid guid);
     Task<Result> Delete(Guid guid);
 }

@@ -68,6 +68,17 @@ public static class ObjectiveEndpoints
 
             return Results.NoContent();
         });
+        
+        app.MapGet("Objective/GetAllAssignments/{guid}", async (Guid guid, IObjectiveService objectiveService) =>
+        {
+            Result<List<Guid>> result = await objectiveService.GetAllAssignments(guid);
+            
+            if (result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+            return Results.Ok(result.Data);
+        });
 
         app.MapDelete("Objective/Delete/{guid}", async (Guid guid, IObjectiveService objectiveService) =>
         {

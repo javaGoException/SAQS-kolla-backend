@@ -63,5 +63,28 @@ public static class ActorEndpoints
             }
             return Results.NoContent();
         });
+        
+        app.MapGet("Actor/GetAllAssignments/{guid}", async (Guid guid, IActorService actorService) =>
+        {
+            Result<List<Guid>> result = await actorService.GetAllAssignments(guid);
+            
+            if (result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+            return Results.Ok(result.Data);
+        });
+        
+        app.MapDelete("Actor/Delete/{guid}", async (Guid guid, IActorService actorService) =>
+        {
+            Result result = await actorService.Delete(guid);
+
+            if(result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
     }
 }

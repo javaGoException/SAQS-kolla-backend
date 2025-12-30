@@ -18,5 +18,6 @@ public interface IAssignmentRepository
     Task<bool> UpdateRequiredRole(Guid guid, Guid? requiredRoleGuid);
     Task<bool> UpdatePriority(Guid guid, Priority priority);
     Task<bool> UpdateStatus(Guid guid, AssignmentStatus assignmentStatus);
+    Task<bool> UpdateParentObjective(Guid guid, Guid? parentObjectiveGuid);
     Task<bool> DeleteAssignment(Guid guid);
 }

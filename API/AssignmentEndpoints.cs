@@ -181,6 +181,21 @@ public static class AssignmentEndpoints
 
             return Results.NoContent();
         });
+        
+        app.MapPatch("Assignment/SetParentObjective", async ([FromBody] AssignmentSetParentObjectiveRequest assignmentSetParentObjectiveRequest, IAssignmentService assignmentService) =>
+        {
+            Result result = await assignmentService.SetParentObjective(
+                assignmentSetParentObjectiveRequest.Guid,
+                assignmentSetParentObjectiveRequest.ParentObjectiveGuid
+            );
+
+            if (result.IsSuccess == false)
+            {
+                return ErrorMapper.Map(result.ResultError, result.Error!);
+            }
+
+            return Results.NoContent();
+        });
 
         app.MapDelete("Assignment/Delete/{guid}", async (Guid guid, IAssignmentService assignmentService) =>
         {

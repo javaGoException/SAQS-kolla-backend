@@ -156,6 +156,15 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, Status = assignmentStatus });
         return affectedRows > 0;
     }
+    
+    async Task<bool> IAssignmentRepository.UpdateParentObjective(Guid guid, Guid? parentObjectiveGuid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "UPDATE Assignments SET ParentObjectiveGuid = @ParentObjectiveGuid WHERE Guid = @Guid;";
+
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, ParentObjectiveGuid = parentObjectiveGuid });
+        return affectedRows > 0;
+    }
 
     async Task<bool> IAssignmentRepository.DeleteAssignment(Guid guid)
     {

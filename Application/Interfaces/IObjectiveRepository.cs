@@ -10,5 +10,6 @@ public interface IObjectiveRepository
     Task<bool> InsertObjective(Objective objective);
     Task<bool> UpdateDisplayName(Guid guid, string displayName);
     Task<bool> UpdateDescription(Guid guid, string? description);
+    Task<List<Guid>> QueryAllAssignments(Guid guid);
     Task<bool> DeleteObjective(Guid guid);
 }

@@ -17,5 +17,6 @@ public interface IAssignmentService
     Task<Result> SetRequiredRole(Guid guid, Guid? requiredRole);
     Task<Result> SetPriority(Guid guid, Priority priority);
     Task<Result> SetStatus(Guid guid, AssignmentStatus assignmentStatus);
+    Task<Result> SetParentObjective(Guid guid, Guid? parentObjectiveGuid);
     Task<Result> Delete(Guid guid);
 }

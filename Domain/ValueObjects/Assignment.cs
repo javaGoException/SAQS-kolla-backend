@@ -14,4 +14,5 @@ public class Assignment
     public Guid? RequiredRoleGuid {get; set;}
     public Priority Priority { get; set; } = Priority.MidTerm;
     public AssignmentStatus Status {get; set;} = AssignmentStatus.Planned;
+    public Guid? ParentObjectiveGuid {get; set;}
 }

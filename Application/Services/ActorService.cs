@@ -94,4 +94,28 @@ public class ActorService(IActorRepository actorRepository, IRoleRepository role
         await actorRepository.UpdateRole(guid, roleGuid);
         return Result.Success();
     }
+
+    async Task<Result<List<Guid>>> IActorService.GetAllAssignments(Guid guid)
+    {
+        Actor? actor = await actorRepository.QueryActor(guid);
+        if (actor == null)
+        {
+            return Result<List<Guid>>.Failure(ResultError.NotFound, "The actor with this guid doesn't exist");
+        }
+
+        List<Guid> assignments = await actorRepository.QueryAllAssignments(guid);
+        return Result<List<Guid>>.Success(assignments);
+    }
+    
+    async Task<Result> IActorService.Delete(Guid guid)
+    {
+        Actor? actor = await actorRepository.QueryActor(guid);
+        if (actor == null)
+        {
+            return Result.Failure(ResultError.NotFound, "The actor with this guid doesn't exist");
+        }
+
+        await actorRepository.Delete(guid);
+        return Result.Success();
+    }
 }

@@ -10,4 +10,6 @@ public interface IActorRepository
     Task<bool> InsertActor(Actor actor, Guid? roleGuid);
     Task<bool> UpdateDisplayName(Guid guid, string displayName);
     Task<bool> UpdateRole(Guid guid, Guid? roleGuid);
+    Task<List<Guid>> QueryAllAssignments(Guid guid);
+    Task<bool> Delete(Guid guid);
 }

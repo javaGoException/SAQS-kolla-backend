@@ -64,7 +64,8 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         AssigneeGuid TEXT,
         RequiredRoleGuid TEXT,
         Priority INTEGER NOT NULL,
-        Status INTEGER NOT NULL
+        Status INTEGER NOT NULL,
+        ParentObjectiveGuid TEXT
         );");
     }
 }
