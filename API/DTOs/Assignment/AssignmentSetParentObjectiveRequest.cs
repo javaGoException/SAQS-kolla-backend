@@ -5,5 +5,5 @@ namespace SAQS_kolla_backend.API.DTOs.Assignment;
 public record AssignmentSetParentObjectiveRequest
 (
     [Required] Guid Guid,
-    Guid? ParentObjectiveGuid
+    [Required] Guid? ParentObjectiveGuid
 );

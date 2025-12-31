@@ -4,5 +4,5 @@ namespace SAQS_kolla_backend.API.DTOs.Objective;
 
 public record ObjectiveCreateRequest(
     [Required] string DisplayName,
-    string? Description
+    [Required] string? Description
 );

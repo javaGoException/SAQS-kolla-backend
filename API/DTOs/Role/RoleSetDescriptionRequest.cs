@@ -4,5 +4,5 @@ namespace SAQS_kolla_backend.API.DTOs.Role;
 
 public record RoleSetDescriptionRequest(
     [Required] Guid Guid,
-    string? Description
+    [Required] string? Description
 );
