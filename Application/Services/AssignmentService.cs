@@ -41,7 +41,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         return Result<Assignment>.Success(assignment);
     }
     
-    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, DateTimeOffset? startDate, DateTimeOffset? deadlineDate, Guid? assigneeGuid, Guid? requiredRole)
+    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, DateTimeOffset? startDate, DateTimeOffset? deadlineDate, Guid? assigneeGuid, Guid? requiredRole, Guid? parentObjectiveGuid)
     {
         if (String.IsNullOrEmpty(displayName))
         {
@@ -91,7 +91,8 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             AssigneeGuid = assigneeGuid,
             RequiredRoleGuid = requiredRole,
             Priority = assignmentPriority,
-            Status = AssignmentStatus.Planned
+            Status = AssignmentStatus.Planned,
+            ParentObjectiveGuid = parentObjectiveGuid
         };
         
         await assignmentRepository.InsertAssignment(assignment);

@@ -23,7 +23,7 @@ public class ActorRepository(IDatabaseConnector databaseConnector, IRoleReposito
         Role? role = null;
         if (actorDto.RoleGuid != null)
         {
-            role = await roleRepository.QueryRole(actorDto.RoleGuid); 
+            role = await roleRepository.QueryRole(Guid.Parse(actorDto.RoleGuid)); 
         }
 
         Actor actor = new()

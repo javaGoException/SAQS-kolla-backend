@@ -1,5 +1,3 @@
-using SAQS_kolla_backend.Domain.Enums;
-
 namespace SAQS_kolla_backend.Infrastructure.DTOs;
 
 public record AssignmentDto(
@@ -11,6 +9,7 @@ public record AssignmentDto(
     string? DeadlineDate,
     string? AssigneeGuid,
     string? RequiredRoleGuid,
-    Priority Priority,
-    AssignmentStatus Status
+    long Priority,
+    long Status,
+    string? ParentObjectiveGuid
 );

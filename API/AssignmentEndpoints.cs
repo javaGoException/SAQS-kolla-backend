@@ -41,7 +41,8 @@ public static class AssignmentEndpoints
                 assignmentCreateRequest.StartDate,
                 assignmentCreateRequest.DeadlineDate,
                 assignmentCreateRequest.AssigneeGuid,
-                assignmentCreateRequest.RequiredRoleGuid
+                assignmentCreateRequest.RequiredRoleGuid,
+                assignmentCreateRequest.ParentObjectiveGuid
             );
 
             if(result.IsSuccess == false)

@@ -25,6 +25,7 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         DateTimeOffset? deadlineDateParsed = assignmentDto.DeadlineDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.DeadlineDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         Guid? assigneeGuidParsed = assignmentDto.AssigneeGuid == null ? null : Guid.Parse(assignmentDto.AssigneeGuid);
         Guid? requiredRoleGuid = assignmentDto.RequiredRoleGuid == null ? null : Guid.Parse(assignmentDto.RequiredRoleGuid);
+        Guid? parentObjectiveGuid = assignmentDto.ParentObjectiveGuid == null ? null : Guid.Parse(assignmentDto.ParentObjectiveGuid);
         
         Assignment assignment = new()
         {
@@ -36,8 +37,9 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
             DeadlineDate = deadlineDateParsed,
             AssigneeGuid = assigneeGuidParsed,
             RequiredRoleGuid = requiredRoleGuid,
-            Priority = assignmentDto.Priority,
-            Status = assignmentDto.Status
+            Priority = (Priority)assignmentDto.Priority,
+            Status = (AssignmentStatus)assignmentDto.Status,
+            ParentObjectiveGuid = parentObjectiveGuid
         };
         return assignment;
     }

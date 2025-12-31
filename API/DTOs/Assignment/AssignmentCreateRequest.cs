@@ -8,5 +8,6 @@ public record AssignmentCreateRequest(
     DateTimeOffset? StartDate,
     DateTimeOffset? DeadlineDate,
     Guid? AssigneeGuid,
-    Guid? RequiredRoleGuid
+    Guid? RequiredRoleGuid,
+    Guid? ParentObjectiveGuid
 );
