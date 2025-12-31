@@ -34,7 +34,7 @@ public static class RoleEndpoints
 
         app.MapPost("Role/Create", async ([FromBody] RoleCreateRequest roleCreateRequest, IRoleService roleService) =>
         {
-            Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.isAdmin);
+            Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.IsAdmin);
 
             if(result.IsSuccess == false)
             {
@@ -70,7 +70,7 @@ public static class RoleEndpoints
 
         app.MapPatch("Role/SetAdminFlag", async ([FromBody] RoleSetAdminFlagRequest roleSetAdminFlagRequest, IRoleService roleService) =>
         {
-            Result result = await roleService.SetAdminFlag(roleSetAdminFlagRequest.Guid, roleSetAdminFlagRequest.isAdmin);
+            Result result = await roleService.SetAdminFlag(roleSetAdminFlagRequest.Guid, roleSetAdminFlagRequest.IsAdmin);
 
             if(result.IsSuccess == false)
             {

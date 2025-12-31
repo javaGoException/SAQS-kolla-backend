@@ -25,7 +25,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
             Guid = Guid.Parse(roleDto.Guid),
             DisplayName = roleDto.DisplayName,
             Description = roleDto.Description,
-            IsAdmin = roleDto.IsAdmin
+            IsAdmin = roleDto.IsAdmin != 0
         };
         return role;
     }
@@ -47,7 +47,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
             Guid = Guid.Parse(roleDto.Guid),
             DisplayName = roleDto.DisplayName,
             Description = roleDto.Description,
-            IsAdmin = roleDto.IsAdmin
+            IsAdmin = roleDto.IsAdmin != 0
         };
         return role;
     }

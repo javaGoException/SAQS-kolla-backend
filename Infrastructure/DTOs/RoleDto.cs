@@ -4,5 +4,5 @@ public record RoleDto(
     string Guid, 
     string DisplayName, 
     string? Description,
-    bool IsAdmin
+    long IsAdmin
 );
