@@ -68,7 +68,7 @@ public static class AssignmentEndpoints
             return Results.NoContent();
         });
         
-        app.MapPatch("Assignment/Description", async ([FromBody] AssignmentSetDescriptionRequest assignmentSetDescriptionRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDescription", async ([FromBody] AssignmentSetDescriptionRequest assignmentSetDescriptionRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDescription(
                 assignmentSetDescriptionRequest.Guid,

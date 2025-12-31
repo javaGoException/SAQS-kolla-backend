@@ -41,7 +41,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         return Result<Assignment>.Success(assignment);
     }
     
-    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, DateTimeOffset? startDate, DateTimeOffset? deadlineDate, Guid? assigneeGuid, Guid? requiredRole, Guid? parentObjectiveGuid)
+    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, DateTimeOffset? startDate, DateTimeOffset? deadlineDate, Guid? assigneeGuid, Guid? requiredRoleGuid, Guid? parentObjectiveGuid)
     {
         if (String.IsNullOrEmpty(displayName))
         {
@@ -51,7 +51,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         Assignment? existingAssignment = await assignmentRepository.QueryAssignment(displayName);
         if (existingAssignment != null)
         {
-            return Result<Guid>.Failure(ResultError.Conflict,"Assignment already exists");
+            return Result<Guid>.Failure(ResultError.Conflict,"Assignment with this name already exists");
         }
 
         if (startDate != null)
@@ -80,6 +80,52 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             assignmentPriority = CalculatePriority(startDate.Value, deadlineDate.Value);
         }
 
+        if (assigneeGuid.HasValue)
+        {
+            Actor? assignee = await actorRepository.QueryActor(assigneeGuid.Value);
+            if (assignee == null)
+            {
+                return Result<Guid>.Failure(ResultError.NotFound, "The actor with this guid doesn't exists");
+            }
+        }
+
+        if (requiredRoleGuid.HasValue)
+        {
+            Role? requiredRole = await roleRepository.QueryRole(requiredRoleGuid.Value);
+            if (requiredRole == null)
+            {
+                return Result<Guid>.Failure(ResultError.NotFound, "The role with this guid doesn't exists");
+            }
+        }
+
+        if (assigneeGuid.HasValue && requiredRoleGuid.HasValue)
+        {
+            Actor? assignee = await actorRepository.QueryActor(assigneeGuid.Value);
+            if (assignee == null)
+            {
+                return Result<Guid>.Failure(ResultError.NotFound, "The actor with this guid doesn't exists");
+            }
+            
+            if (assignee.Role == null)
+            {
+                return Result<Guid>.Failure(ResultError.ValidationError,"Actor does not have a required role");
+            }
+
+            if (requiredRoleGuid != assignee.Role.Guid)
+            {
+                return Result<Guid>.Failure(ResultError.ValidationError,"Actor does not have a required role");
+            }
+        }
+
+        if (parentObjectiveGuid.HasValue)
+        {
+            Objective? parentObjective = await objectiveRepository.QueryObjective(parentObjectiveGuid.Value);
+            if (parentObjective == null)
+            {
+                return Result<Guid>.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
+            }
+        }
+
         Assignment assignment = new()
         {
             Guid = Guid.NewGuid(),
@@ -89,7 +135,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             EndDate = null,
             DeadlineDate = deadlineDate,
             AssigneeGuid = assigneeGuid,
-            RequiredRoleGuid = requiredRole,
+            RequiredRoleGuid = requiredRoleGuid,
             Priority = assignmentPriority,
             Status = AssignmentStatus.Planned,
             ParentObjectiveGuid = parentObjectiveGuid
@@ -198,6 +244,19 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             if (actor == null)
             {
                 return Result.Failure(ResultError.NotFound,"Actor with this guid does not exist");
+            }
+
+            if (assignment.RequiredRoleGuid.HasValue)
+            {
+                if (actor.Role == null)
+                {
+                    return Result.Failure(ResultError.ValidationError,"Actor does not have a required role");
+                }
+
+                if (assignment.RequiredRoleGuid != actor.Role.Guid)
+                {
+                    return Result.Failure(ResultError.ValidationError,"Actor does not have a required role");
+                }
             }
         }
         
