@@ -20,9 +20,9 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
             return null;
         }
 
-        DateTimeOffset? startDateParsed = assignmentDto.StartDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.StartDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-        DateTimeOffset? endDateParsed = assignmentDto.EndDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.EndDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-        DateTimeOffset? deadlineDateParsed = assignmentDto.DeadlineDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.DeadlineDate,"yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        DateTimeOffset? startDateParsed = assignmentDto.StartDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.StartDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        DateTimeOffset? endDateParsed = assignmentDto.EndDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.EndDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        DateTimeOffset? deadlineDateParsed = assignmentDto.DeadlineDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.DeadlineDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         Guid? assigneeGuidParsed = assignmentDto.AssigneeGuid == null ? null : Guid.Parse(assignmentDto.AssigneeGuid);
         Guid? requiredRoleGuid = assignmentDto.RequiredRoleGuid == null ? null : Guid.Parse(assignmentDto.RequiredRoleGuid);
         Guid? parentObjectiveGuid = assignmentDto.ParentObjectiveGuid == null ? null : Guid.Parse(assignmentDto.ParentObjectiveGuid);
@@ -70,11 +70,29 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = @"
         INSERT INTO Assignments(Guid, DisplayName, Description, StartDate, EndDate, 
-            DeadlineDate, AssigneeGuid, RequiredRoleGuid, Priority, Status)
+            DeadlineDate, AssigneeGuid, RequiredRoleGuid, Priority, Status, ParentObjectiveGuid)
         VALUES(@Guid,@DisplayName, @Description, @StartDate, @EndDate, 
-            @DeadlineDate, @AssigneeGuid, @RequiredRoleGuid, @Priority, @Status);";
+            @DeadlineDate, @AssigneeGuid, @RequiredRoleGuid, @Priority, @Status, @ParentObjectiveGuid);";
 
-        var affectedRows = await connection.ExecuteAsync(sql, assignment);
+        string? parsedStartDate = assignment.StartDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        string? parsedEndDate = assignment.EndDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        string? parsedDeadline = assignment.DeadlineDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+            
+        var param = new
+        {
+            Guid = assignment.Guid,
+            DisplayName = assignment.DisplayName,
+            Description = assignment.Description,
+            StartDate = parsedStartDate,
+            EndDate = parsedEndDate,
+            DeadlineDate = parsedDeadline,
+            AssigneeGuid = assignment.AssigneeGuid,
+            RequiredRoleGuid = assignment.RequiredRoleGuid,
+            Priority = assignment.Priority,
+            Status = assignment.Status,
+            ParentObjectiveGuid = assignment.ParentObjectiveGuid
+        };
+        var affectedRows = await connection.ExecuteAsync(sql, param);
         return affectedRows > 0;
     }
 
@@ -101,7 +119,8 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Assignments SET StartDate = @StartDate WHERE Guid = @Guid;";
 
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, StartDate = startDate });
+        string? parsedStartDate = startDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, StartDate = parsedStartDate });
         return affectedRows > 0;
     }
 
@@ -110,7 +129,8 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Assignments SET EndDate = @EndDate WHERE Guid = @Guid;";
         
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, EndDate = endDate });
+        string? parsedEndDate = endDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, EndDate = parsedEndDate });
         return affectedRows > 0;
     }
 
@@ -119,7 +139,8 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Assignments SET DeadlineDate = @DeadlineDate WHERE Guid = @Guid;";
 
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, DeadlineDate = deadlineDate });
+        string? parsedDeadlineDate = deadlineDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, DeadlineDate = parsedDeadlineDate });
         return affectedRows > 0;
     }
 

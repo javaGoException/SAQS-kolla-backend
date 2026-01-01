@@ -4,5 +4,5 @@ namespace SAQS_kolla_backend.API.DTOs.Objective;
 
 public record ObjectiveSetDescriptionRequest(
     [Required] Guid Guid,
-    [Required] string? Description
+    string? Description
 );

@@ -101,9 +101,13 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
     async Task<bool> IRoleRepository.DeleteRole(Guid guid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "DELETE FROM Roles WHERE Guid = @Guid;";
-
-        var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid});
-        return affectedRows > 0;
+        
+        string assignmentsSql = "UPDATE Assignments SET RequiredRoleGuid = NULL WHERE RequiredRoleGuid = @Guid;";
+        var assignmentsAffectedRows = await connection.ExecuteAsync(assignmentsSql, new {Guid = guid});
+        
+        string roleSql = "DELETE FROM Roles WHERE Guid = @Guid;";
+        var roleAffectedRows = await connection.ExecuteAsync(roleSql, new {Guid = guid});
+        
+        return assignmentsAffectedRows > 0 && roleAffectedRows > 0;
     }
 }

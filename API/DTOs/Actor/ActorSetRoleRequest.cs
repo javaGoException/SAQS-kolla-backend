@@ -4,5 +4,5 @@ namespace SAQS_kolla_backend.API.DTOs.Actor;
 
 public record ActorSetRoleRequest(
     [Required] Guid Guid,
-    [Required] Guid? RoleGuid
+    Guid? RoleGuid
 );

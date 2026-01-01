@@ -4,5 +4,5 @@ namespace SAQS_kolla_backend.API.DTOs.Assignment;
 
 public record AssignmentSetDescriptionRequest(
     [Required] Guid Guid,
-    [Required] string? Description
+    string? Description
 );

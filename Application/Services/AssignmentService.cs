@@ -23,7 +23,38 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         
         return Priority.LongTerm;
     }
-    
+
+    private async Task<bool> DoesAssigneeHaveRequiredRole(Guid? assigneeGuid, Guid? requiredRoleGuid)
+    {
+        if (requiredRoleGuid == null)
+        {
+            return true;
+        }
+
+        if (assigneeGuid == null)
+        {
+            return false;
+        }
+        
+        Actor? actor = await actorRepository.QueryActor(assigneeGuid.Value);
+        if (actor == null)
+        {
+            return false;
+        }
+        
+        if (actor.Role == null)
+        {
+            return false;
+        }
+        
+        if (actor.Role.Guid != requiredRoleGuid)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
     async Task<Result<List<Guid>>> IAssignmentService.GetAllGuids()
     {
         List<Guid> guids = await assignmentRepository.QueryAllAssignmentsGuids();
@@ -75,7 +106,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         {
             if (deadlineDate <= startDate)
             {
-                return Result<Guid>.Failure(ResultError.ValidationError, "Deadline cannot be before StartDate");
+                return Result<Guid>.Failure(ResultError.ValidationError, "Deadline cannot be before(or same as) StartDate");
             }
             assignmentPriority = CalculatePriority(startDate.Value, deadlineDate.Value);
         }
@@ -100,18 +131,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
 
         if (assigneeGuid.HasValue && requiredRoleGuid.HasValue)
         {
-            Actor? assignee = await actorRepository.QueryActor(assigneeGuid.Value);
-            if (assignee == null)
-            {
-                return Result<Guid>.Failure(ResultError.NotFound, "The actor with this guid doesn't exists");
-            }
-            
-            if (assignee.Role == null)
-            {
-                return Result<Guid>.Failure(ResultError.ValidationError,"Actor does not have a required role");
-            }
-
-            if (requiredRoleGuid != assignee.Role.Guid)
+            if (await DoesAssigneeHaveRequiredRole(assigneeGuid, requiredRoleGuid) == false)
             {
                 return Result<Guid>.Failure(ResultError.ValidationError,"Actor does not have a required role");
             }
@@ -187,6 +207,14 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         {
             return Result.Failure(ResultError.NotFound,"Assignment not found");
         }
+
+        if (startDate != null)
+        {
+            if (startDate < DateTimeOffset.Now)
+            {
+                return Result.Failure(ResultError.ValidationError, "StartDate cannot be in the past");
+            }
+        }
         
         if (startDate != null && assignment.DeadlineDate != null)
         {
@@ -194,13 +222,14 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             
             if (assignment.DeadlineDate <= startDate)
             {
-                return Result.Failure(ResultError.ValidationError, "Cannot set StartDate after the Deadline");
+                return Result.Failure(ResultError.ValidationError, "Cannot set StartDate after(or same time) as Deadline");
             }
             
             assignmentPriority = CalculatePriority(startDate.Value, assignment.DeadlineDate.Value);
             await assignmentRepository.UpdatePriority(guid, assignmentPriority);
         }
         
+        await assignmentRepository.UpdateEndDate(guid, null);
         await assignmentRepository.UpdateStartDate(guid, startDate);
         return Result.Success();
     }
@@ -213,13 +242,21 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             return Result.Failure(ResultError.NotFound,"Assignment not found");
         }
         
+        if (deadlineDate != null)
+        {
+            if (deadlineDate < DateTimeOffset.Now)
+            {
+                return Result.Failure(ResultError.ValidationError, "Deadline cannot be in the past");
+            }
+        }
+        
         if (assignment.StartDate != null && deadlineDate != null)
         {
             Priority assignmentPriority = Priority.MidTerm;
             
             if (deadlineDate <= assignment.StartDate)
             {
-                return Result.Failure(ResultError.ValidationError, "Cannot set Deadline before the StartDate");
+                return Result.Failure(ResultError.ValidationError, "Cannot set DeadlineDate before(or same time) as StartDate");
             }
             
             assignmentPriority = CalculatePriority(assignment.StartDate.Value, deadlineDate.Value);
@@ -248,12 +285,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
 
             if (assignment.RequiredRoleGuid.HasValue)
             {
-                if (actor.Role == null)
-                {
-                    return Result.Failure(ResultError.ValidationError,"Actor does not have a required role");
-                }
-
-                if (assignment.RequiredRoleGuid != actor.Role.Guid)
+                if (await DoesAssigneeHaveRequiredRole(assigneeGuid, assignment.RequiredRoleGuid.Value) == false)
                 {
                     return Result.Failure(ResultError.ValidationError,"Actor does not have a required role");
                 }
@@ -278,6 +310,14 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             if (role == null)
             {
                 return Result.Failure(ResultError.NotFound,"Role with this guid does not exist");
+            }
+            
+            if (assignment.AssigneeGuid.HasValue)
+            {
+                if (await DoesAssigneeHaveRequiredRole(assignment.AssigneeGuid.Value, requiredRoleGuid) == false)
+                {
+                    return Result.Failure(ResultError.ValidationError,"Actor does not have a required role");
+                }
             }
         }
         await assignmentRepository.UpdateRequiredRole(guid, requiredRoleGuid);
