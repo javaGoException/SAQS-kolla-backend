@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using SAQS_kolla_backend.API.DTOs.Assignment;
+using SAQS_kolla_backend.API.Hubs;
 using SAQS_kolla_backend.Application.Common;
 using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Domain.Enums;
@@ -33,7 +35,7 @@ public static class AssignmentEndpoints
             return Results.Ok(result.Data);
         });
 
-        app.MapPost("Assignment/Create", async ([FromBody] AssignmentCreateRequest assignmentCreateRequest, IAssignmentService assignmentService) =>
+        app.MapPost("Assignment/Create", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentCreateRequest assignmentCreateRequest, IAssignmentService assignmentService) =>
         {
             Result<Guid> result = await assignmentService.Create(
                 assignmentCreateRequest.DisplayName,
@@ -50,10 +52,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", result.Data);
             return Results.Ok(new {guid = result.Data});
         });
 
-        app.MapPatch("Assignment/SetDisplayName", async ([FromBody] AssignmentSetDisplayNameRequest assignmentSetDisplayNameRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDisplayName", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetDisplayNameRequest assignmentSetDisplayNameRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDisplayName(
                 assignmentSetDisplayNameRequest.Guid,
@@ -65,10 +68,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetDisplayNameRequest.Guid);
             return Results.NoContent();
         });
         
-        app.MapPatch("Assignment/SetDescription", async ([FromBody] AssignmentSetDescriptionRequest assignmentSetDescriptionRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDescription", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetDescriptionRequest assignmentSetDescriptionRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDescription(
                 assignmentSetDescriptionRequest.Guid,
@@ -80,10 +84,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetDescriptionRequest.Guid);
             return Results.NoContent();
         });
 
-        app.MapPatch("Assignment/SetStartDate", async ([FromBody] AssignmentSetStartDateRequest assignmentSetStartDateRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetStartDate", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetStartDateRequest assignmentSetStartDateRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetStartDate(
                 assignmentSetStartDateRequest.Guid,
@@ -95,10 +100,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetStartDateRequest.Guid);
             return Results.NoContent();
         });
 
-        app.MapPatch("Assignment/SetDeadlineDate", async ([FromBody] AssignmentSetDeadlineDateRequest assignmentSetDeadlineDateRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDeadlineDate", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetDeadlineDateRequest assignmentSetDeadlineDateRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetDeadlineDate(
                 assignmentSetDeadlineDateRequest.Guid,
@@ -110,10 +116,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetDeadlineDateRequest.Guid);
             return Results.NoContent();
         });
 
-        app.MapPatch("Assignment/SetAssignee", async ([FromBody] AssignmentSetAssigneeRequest assignmentSetAssigneeRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetAssignee", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetAssigneeRequest assignmentSetAssigneeRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetAssignee(
                 assignmentSetAssigneeRequest.Guid,
@@ -125,10 +132,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetAssigneeRequest.Guid);
             return Results.NoContent();
         });
         
-        app.MapPatch("Assignment/SetRequiredRole", async ([FromBody] AssignmentSetRequiredRoleRequest assignmentSetRequiredRole, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetRequiredRole", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetRequiredRoleRequest assignmentSetRequiredRole, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetRequiredRole(
                 assignmentSetRequiredRole.Guid,
@@ -140,10 +148,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
             
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetRequiredRole.Guid);
             return Results.NoContent();
         });
         
-        app.MapPatch("Assignment/SetPriority", async ([FromBody] AssignmentSetPriorityRequest assignmentSetPriorityRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetPriority", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetPriorityRequest assignmentSetPriorityRequest, IAssignmentService assignmentService) =>
         {
             if (Enum.IsDefined(typeof(Priority), assignmentSetPriorityRequest.Priority) == false)
             {
@@ -160,10 +169,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetPriorityRequest.Guid);
             return Results.NoContent();
         });
 
-        app.MapPatch("Assignment/SetStatus", async ([FromBody] AssignmentSetStatusRequest assignmentSetStatusRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetStatus", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetStatusRequest assignmentSetStatusRequest, IAssignmentService assignmentService) =>
         {
             if (Enum.IsDefined(typeof(AssignmentStatus), assignmentSetStatusRequest.AssignmentStatus) == false)
             {
@@ -180,10 +190,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetStatusRequest.Guid);
             return Results.NoContent();
         });
         
-        app.MapPatch("Assignment/SetParentObjective", async ([FromBody] AssignmentSetParentObjectiveRequest assignmentSetParentObjectiveRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetParentObjective", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetParentObjectiveRequest assignmentSetParentObjectiveRequest, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.SetParentObjective(
                 assignmentSetParentObjectiveRequest.Guid,
@@ -195,10 +206,11 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetParentObjectiveRequest.Guid);
             return Results.NoContent();
         });
 
-        app.MapDelete("Assignment/Delete/{guid}", async (Guid guid, IAssignmentService assignmentService) =>
+        app.MapDelete("Assignment/Delete/{guid}", async (IHubContext<AssignmentHub> hubContext, Guid guid, IAssignmentService assignmentService) =>
         {
             Result result = await assignmentService.Delete(guid);
 
@@ -207,6 +219,7 @@ public static class AssignmentEndpoints
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", guid);
             return Results.NoContent();
         });
     }

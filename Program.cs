@@ -1,4 +1,5 @@
 using SAQS_kolla_backend.API;
+using SAQS_kolla_backend.API.Hubs;
 using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Application.Services;
 using SAQS_kolla_backend.Infrastructure.Services;
@@ -25,6 +26,7 @@ builder.Services.AddOptions<DatabaseOptions>()
     .ValidateOnStart();
 
 builder.Services.AddValidation();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 ObjectiveEndpoints.Map(app);
@@ -37,5 +39,7 @@ using (var scope = app.Services.CreateScope())
     SqliteInitializer sqliteInitializer = scope.ServiceProvider.GetRequiredService<SqliteInitializer>();
     await sqliteInitializer.InitializeDatabase();
 }
+
+app.MapHub<AssignmentHub>("/Assignment/Notify");
 
 app.Run();
