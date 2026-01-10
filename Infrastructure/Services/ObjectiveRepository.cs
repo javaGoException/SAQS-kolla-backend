@@ -3,6 +3,7 @@ using SAQS_kolla_backend.Domain.ValueObjects;
 using SAQS_kolla_backend.Infrastructure.DTOs;
 using SAQS_kolla_backend.Application.Interfaces;
 using SAQS_kolla_backend.Infrastructure.Setup;
+using System.Globalization;
 
 namespace SAQS_kolla_backend.Infrastructure.Services;
 
@@ -20,11 +21,14 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
             return null;
         }
 
+        DateTimeOffset deadlineDateParsed = DateTimeOffset.ParseExact(objectiveDto.DeadlineDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+
         Objective objective = new()
         {
             Guid = Guid.Parse(objectiveDto.Guid),
             DisplayName = objectiveDto.DisplayName,
-            Description = objectiveDto.Description
+            Description = objectiveDto.Description,
+            DeadlineDate = deadlineDateParsed
         };
         return objective;
     }
@@ -41,11 +45,14 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
             return null;
         }
 
+        DateTimeOffset deadlineDateParsed = DateTimeOffset.ParseExact(objectiveDto.DeadlineDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+
         Objective objective = new()
         {
             Guid = Guid.Parse(objectiveDto.Guid),
             DisplayName = objectiveDto.DisplayName,
-            Description = objectiveDto.Description
+            Description = objectiveDto.Description,
+            DeadlineDate = deadlineDateParsed
         };
         return objective;
     }
@@ -63,9 +70,19 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
     async Task<bool> IObjectiveRepository.InsertObjective(Objective objective)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "INSERT INTO Objectives(Guid, DisplayName, Description) VALUES (@Guid, @DisplayName, @Description);";
+        string sql = "INSERT INTO Objectives(Guid, DisplayName, Description, DeadlineDate) VALUES (@Guid, @DisplayName, @Description, @DeadlineDate);";
 
-        var affectedRows = await connection.ExecuteAsync(sql, objective);
+        string parsedDeadline = objective.DeadlineDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+
+        var param = new
+        {
+            Guid = objective.Guid,
+            DisplayName = objective.DisplayName,
+            Description = objective.Description,
+            DeadlineDate = parsedDeadline
+        };
+        var affectedRows = await connection.ExecuteAsync(sql, param);
+        
         return affectedRows > 0;
     }
 

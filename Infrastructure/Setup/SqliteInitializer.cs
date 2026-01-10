@@ -23,7 +23,8 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         CREATE TABLE IF NOT EXISTS Objectives(
         Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
-        Description TEXT
+        Description TEXT,
+        DeadlineDate TEXT NOT NULL
         );");
     }
 

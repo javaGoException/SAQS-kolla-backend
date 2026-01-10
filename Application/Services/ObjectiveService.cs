@@ -24,7 +24,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Objective>.Success(objective);
     }
 
-    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description)
+    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description, DateTimeOffset deadlineDate)
     {
         Objective? existingObjective = await objectiveRepository.QueryObjective(name);
 
@@ -33,11 +33,17 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
             return Result<Guid>.Failure(ResultError.Conflict, "The objective with this name already exists");
         }
 
+        if (deadlineDate < DateTimeOffset.Now)
+        {
+            return Result<Guid>.Failure(ResultError.ValidationError, "Deadline cannot be in the past");
+        }
+        
         Objective objective = new()
         {
             Guid = Guid.NewGuid(),
             DisplayName = name,
-            Description = description
+            Description = description,
+            DeadlineDate = deadlineDate
         };
         await objectiveRepository.InsertObjective(objective);
 

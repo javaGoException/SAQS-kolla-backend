@@ -35,7 +35,12 @@ public static class ObjectiveEndpoints
 
         app.MapPost("Objective/Create", async ([FromBody] ObjectiveCreateRequest objectiveCreateRequest, IObjectiveService objectiveService) =>
         {
-            Result<Guid> result = await objectiveService.Create(objectiveCreateRequest.DisplayName, objectiveCreateRequest.Description);
+            if (objectiveCreateRequest.DeadlineDate <= DateTimeOffset.UtcNow)
+            {
+                return Results.BadRequest(new {error="DeadlineDate must be in the future"});
+            }
+
+            Result<Guid> result = await objectiveService.Create(objectiveCreateRequest.DisplayName, objectiveCreateRequest.Description, objectiveCreateRequest.DeadlineDate);
 
             if(result.IsSuccess == false)
             {
