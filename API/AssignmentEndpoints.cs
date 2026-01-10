@@ -40,8 +40,7 @@ public static class AssignmentEndpoints
             Result<Guid> result = await assignmentService.Create(
                 assignmentCreateRequest.DisplayName,
                 assignmentCreateRequest.Description,
-                assignmentCreateRequest.StartDate,
-                assignmentCreateRequest.DeadlineDate,
+                assignmentCreateRequest.Duration,
                 assignmentCreateRequest.AssigneeGuid,
                 assignmentCreateRequest.RequiredRoleGuid,
                 assignmentCreateRequest.ParentObjectiveGuid
@@ -88,35 +87,19 @@ public static class AssignmentEndpoints
             return Results.NoContent();
         });
 
-        app.MapPatch("Assignment/SetStartDate", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetStartDateRequest assignmentSetStartDateRequest, IAssignmentService assignmentService) =>
+        app.MapPatch("Assignment/SetDuration", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetDurationRequest assignmentSetDurationRequest, IAssignmentService assignmentService) =>
         {
-            Result result = await assignmentService.SetStartDate(
-                assignmentSetStartDateRequest.Guid,
-                assignmentSetStartDateRequest.StartDate
+            Result result = await assignmentService.SetDuration(
+                assignmentSetDurationRequest.Guid,
+                assignmentSetDurationRequest.Duration
             );
 
-            if (result.IsSuccess == false)
+            if(result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
             }
 
-            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetStartDateRequest.Guid);
-            return Results.NoContent();
-        });
-
-        app.MapPatch("Assignment/SetDeadlineDate", async (IHubContext<AssignmentHub> hubContext, [FromBody] AssignmentSetDeadlineDateRequest assignmentSetDeadlineDateRequest, IAssignmentService assignmentService) =>
-        {
-            Result result = await assignmentService.SetDeadlineDate(
-                assignmentSetDeadlineDateRequest.Guid,
-                assignmentSetDeadlineDateRequest.DeadlineDate
-            );
-
-            if (result.IsSuccess == false)
-            {
-                return ErrorMapper.Map(result.ResultError, result.Error!);
-            }
-
-            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetDeadlineDateRequest.Guid);
+            await hubContext.Clients.All.SendAsync("OnAssignmentUpdated", assignmentSetDurationRequest.Guid);
             return Results.NoContent();
         });
 

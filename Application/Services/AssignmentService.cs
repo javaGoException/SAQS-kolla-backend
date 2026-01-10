@@ -7,21 +7,17 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class AssignmentService(IAssignmentRepository assignmentRepository, IActorRepository actorRepository, IRoleRepository roleRepository, IObjectiveRepository objectiveRepository) : IAssignmentService
 {
-    private Priority CalculatePriority(DateTimeOffset startDate, DateTimeOffset deadlineDate)
+    private Priority CalculateAssignmentPriority(DateTimeOffset deadlineDate, int duration)
     {
-        double hoursBetweenStartAndDeadline = (int)(deadlineDate - startDate).TotalHours;
+        int hoursUntilDeadline = (int)(deadlineDate - DateTimeOffset.Now).TotalHours;
+        int remainingTimeAfterWork = hoursUntilDeadline - duration; 
 
-        if (hoursBetweenStartAndDeadline <= 8)
+        if (remainingTimeAfterWork <= 8)
         {
             return Priority.ShortTerm;
-        } 
-        
-        if (hoursBetweenStartAndDeadline > 8 && hoursBetweenStartAndDeadline <= 32)
-        {
-            return Priority.MidTerm;
         }
-        
-        return Priority.LongTerm;
+
+        return remainingTimeAfterWork <= 32 ? Priority.MidTerm : Priority.LongTerm;
     }
 
     private async Task<bool> DoesAssigneeHaveRequiredRole(Guid? assigneeGuid, Guid? requiredRoleGuid)
@@ -72,7 +68,7 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         return Result<Assignment>.Success(assignment);
     }
     
-    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, DateTimeOffset? startDate, DateTimeOffset? deadlineDate, Guid? assigneeGuid, Guid? requiredRoleGuid, Guid? parentObjectiveGuid)
+    async Task<Result<Guid>> IAssignmentService.Create(string displayName, string? description, int duration, Guid? assigneeGuid, Guid? requiredRoleGuid, Guid? parentObjectiveGuid)
     {
         if (String.IsNullOrEmpty(displayName))
         {
@@ -83,32 +79,6 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         if (existingAssignment != null)
         {
             return Result<Guid>.Failure(ResultError.Conflict,"Assignment with this name already exists");
-        }
-
-        if (startDate != null)
-        {
-            if (startDate < DateTimeOffset.Now)
-            {
-                return Result<Guid>.Failure(ResultError.ValidationError, "StartDate cannot be in the past");
-            }
-        }
-
-        if (deadlineDate != null)
-        {
-            if (deadlineDate < DateTimeOffset.Now)
-            {
-                return Result<Guid>.Failure(ResultError.ValidationError, "Deadline cannot be in the past");
-            }
-        }
-
-        Priority assignmentPriority = Priority.MidTerm;
-        if (startDate != null && deadlineDate != null)
-        {
-            if (deadlineDate <= startDate)
-            {
-                return Result<Guid>.Failure(ResultError.ValidationError, "Deadline cannot be before(or same as) StartDate");
-            }
-            assignmentPriority = CalculatePriority(startDate.Value, deadlineDate.Value);
         }
 
         if (assigneeGuid.HasValue)
@@ -137,6 +107,12 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             }
         }
 
+        if (duration < 0)
+        {
+            return Result<Guid>.Failure(ResultError.ValidationError,"Duration cannot be negative");
+        }
+
+        Priority assignmentPriority = Priority.MidTerm;
         if (parentObjectiveGuid.HasValue)
         {
             Objective? parentObjective = await objectiveRepository.QueryObjective(parentObjectiveGuid.Value);
@@ -144,16 +120,17 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             {
                 return Result<Guid>.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
             }
+            assignmentPriority = CalculateAssignmentPriority(parentObjective.DeadlineDate, duration);
         }
 
+        var maxSequenceNumber = (await assignmentRepository.GetMaxSequenceNumber() ?? 0) + 1;
         Assignment assignment = new()
         {
             Guid = Guid.NewGuid(),
             DisplayName = displayName,
             Description = description,
-            StartDate = startDate,
-            EndDate = null,
-            DeadlineDate = deadlineDate,
+            Duration = duration,
+            SequenceNumber = maxSequenceNumber,
             AssigneeGuid = assigneeGuid,
             RequiredRoleGuid = requiredRoleGuid,
             Priority = assignmentPriority,
@@ -199,8 +176,8 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         await assignmentRepository.UpdateDescription(guid, description);
         return Result.Success();
     }
-    
-    async Task<Result> IAssignmentService.SetStartDate(Guid guid, DateTimeOffset? startDate)
+
+    async Task<Result> IAssignmentService.SetDuration(Guid guid, int duration)
     {
         Assignment? assignment = await assignmentRepository.QueryAssignment(guid);
         if (assignment == null)
@@ -208,62 +185,22 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             return Result.Failure(ResultError.NotFound,"Assignment not found");
         }
 
-        if (startDate != null)
+        if (duration < 0)
         {
-            if (startDate < DateTimeOffset.Now)
-            {
-                return Result.Failure(ResultError.ValidationError, "StartDate cannot be in the past");
-            }
+            return Result.Failure(ResultError.ValidationError,"Duration cannot be negative");
         }
-        
-        if (startDate != null && assignment.DeadlineDate != null)
-        {
-            Priority assignmentPriority = Priority.MidTerm;
-            
-            if (assignment.DeadlineDate <= startDate)
-            {
-                return Result.Failure(ResultError.ValidationError, "Cannot set StartDate after(or same time) as Deadline");
-            }
-            
-            assignmentPriority = CalculatePriority(startDate.Value, assignment.DeadlineDate.Value);
-            await assignmentRepository.UpdatePriority(guid, assignmentPriority);
-        }
-        
-        await assignmentRepository.UpdateEndDate(guid, null);
-        await assignmentRepository.UpdateStartDate(guid, startDate);
-        return Result.Success();
-    }
 
-    async Task<Result> IAssignmentService.SetDeadlineDate(Guid guid, DateTimeOffset? deadlineDate)
-    {
-        Assignment? assignment = await assignmentRepository.QueryAssignment(guid);
-        if (assignment == null)
+        if (assignment.ParentObjectiveGuid.HasValue)
         {
-            return Result.Failure(ResultError.NotFound,"Assignment not found");
-        }
-        
-        if (deadlineDate != null)
-        {
-            if (deadlineDate < DateTimeOffset.Now)
+            Objective? parentObjective = await objectiveRepository.QueryObjective(assignment.ParentObjectiveGuid.Value);
+            if (parentObjective != null)
             {
-                return Result.Failure(ResultError.ValidationError, "Deadline cannot be in the past");
+                Priority assignmentPriority = CalculateAssignmentPriority(parentObjective.DeadlineDate, duration);
+                await assignmentRepository.UpdatePriority(guid, assignmentPriority);
             }
         }
         
-        if (assignment.StartDate != null && deadlineDate != null)
-        {
-            Priority assignmentPriority = Priority.MidTerm;
-            
-            if (deadlineDate <= assignment.StartDate)
-            {
-                return Result.Failure(ResultError.ValidationError, "Cannot set DeadlineDate before(or same time) as StartDate");
-            }
-            
-            assignmentPriority = CalculatePriority(assignment.StartDate.Value, deadlineDate.Value);
-            await assignmentRepository.UpdatePriority(guid, assignmentPriority);
-        }
-        
-        await assignmentRepository.UpdateDeadlineDate(guid, deadlineDate);
+        await assignmentRepository.UpdateDuration(guid, duration);
         return Result.Success();
     }
     
@@ -346,11 +283,15 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
 
         if (assignmentStatus == AssignmentStatus.Completed)
         {
-            await assignmentRepository.UpdateEndDate(guid, DateTimeOffset.Now);
-        }
-        else
-        {
-            await assignmentRepository.UpdateEndDate(guid, null);
+           Guid? nextAssignmentGuid = await assignmentRepository.GetNextAssignmentGuid(assignment.SequenceNumber);
+           if (nextAssignmentGuid.HasValue)
+            {
+                Assignment? nextAssignment = await assignmentRepository.QueryAssignment(nextAssignmentGuid.Value);
+                if (nextAssignment!.Status == AssignmentStatus.Planned)
+                {
+                    await assignmentRepository.UpdateStatus(nextAssignmentGuid.Value, AssignmentStatus.InProgress);
+                }
+            }
         }
         
         await assignmentRepository.UpdateStatus(guid, assignmentStatus);
@@ -372,7 +313,11 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             {
                 return Result.Failure(ResultError.NotFound,"Objective with this guid does not exist");
             }
+
+            Priority assignmentPriority = CalculateAssignmentPriority(objective.DeadlineDate, assignment.Duration);
+            await assignmentRepository.UpdatePriority(guid, assignmentPriority);
         }
+
         await assignmentRepository.UpdateParentObjective(guid, parentObjectiveGuid);
         return Result.Success();
     }

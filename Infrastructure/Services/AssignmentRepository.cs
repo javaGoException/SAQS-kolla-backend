@@ -20,9 +20,6 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
             return null;
         }
 
-        DateTimeOffset? startDateParsed = assignmentDto.StartDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.StartDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        DateTimeOffset? endDateParsed = assignmentDto.EndDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.EndDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        DateTimeOffset? deadlineDateParsed = assignmentDto.DeadlineDate == null ? null : DateTimeOffset.ParseExact(assignmentDto.DeadlineDate,"yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         Guid? assigneeGuidParsed = assignmentDto.AssigneeGuid == null ? null : Guid.Parse(assignmentDto.AssigneeGuid);
         Guid? requiredRoleGuid = assignmentDto.RequiredRoleGuid == null ? null : Guid.Parse(assignmentDto.RequiredRoleGuid);
         Guid? parentObjectiveGuid = assignmentDto.ParentObjectiveGuid == null ? null : Guid.Parse(assignmentDto.ParentObjectiveGuid);
@@ -32,9 +29,8 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
             Guid = Guid.Parse(assignmentDto.Guid),
             DisplayName = assignmentDto.DisplayName,
             Description = assignmentDto.Description,
-            StartDate = startDateParsed,
-            EndDate = endDateParsed,
-            DeadlineDate = deadlineDateParsed,
+            Duration = (int) assignmentDto.Duration,
+            SequenceNumber = (int) assignmentDto.SequenceNumber,
             AssigneeGuid = assigneeGuidParsed,
             RequiredRoleGuid = requiredRoleGuid,
             Priority = (Priority)assignmentDto.Priority,
@@ -65,27 +61,41 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         return guids;
     }
 
+    async Task<int?> IAssignmentRepository.GetMaxSequenceNumber()
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        var result = await connection.ExecuteScalarAsync<int?>(@"SELECT MAX(SequenceNumber) FROM Assignments");
+        return result;
+    }
+
+    async Task<Guid?> IAssignmentRepository.GetNextAssignmentGuid(int sequenceNumber)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = @"
+        SELECT Guid FROM Assignments 
+        WHERE SequenceNumber > @target
+        ORDER BY SequenceNumber ASC 
+        LIMIT 1";
+        
+        var guidString = await connection.ExecuteScalarAsync<string?>(sql, new { target = sequenceNumber });
+        
+        return guidString != null ? Guid.Parse(guidString) : null;
+    }
+
     async Task<bool> IAssignmentRepository.InsertAssignment(Assignment assignment)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = @"
-        INSERT INTO Assignments(Guid, DisplayName, Description, StartDate, EndDate, 
-            DeadlineDate, AssigneeGuid, RequiredRoleGuid, Priority, Status, ParentObjectiveGuid)
-        VALUES(@Guid,@DisplayName, @Description, @StartDate, @EndDate, 
-            @DeadlineDate, @AssigneeGuid, @RequiredRoleGuid, @Priority, @Status, @ParentObjectiveGuid);";
-
-        string? parsedStartDate = assignment.StartDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        string? parsedEndDate = assignment.EndDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        string? parsedDeadline = assignment.DeadlineDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        INSERT INTO Assignments(Guid, DisplayName, Description, Duration, SequenceNumber, AssigneeGuid, RequiredRoleGuid, Priority, Status, ParentObjectiveGuid)
+        VALUES(@Guid,@DisplayName, @Description, @Duration, @SequenceNumber, @AssigneeGuid, @RequiredRoleGuid, @Priority, @Status, @ParentObjectiveGuid);";
             
         var param = new
         {
             Guid = assignment.Guid,
             DisplayName = assignment.DisplayName,
             Description = assignment.Description,
-            StartDate = parsedStartDate,
-            EndDate = parsedEndDate,
-            DeadlineDate = parsedDeadline,
+            Duration = assignment.Duration,
+            SequenceNumber = assignment.SequenceNumber,
             AssigneeGuid = assignment.AssigneeGuid,
             RequiredRoleGuid = assignment.RequiredRoleGuid,
             Priority = assignment.Priority,
@@ -114,33 +124,12 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         return affectedRows > 0;
     }
 
-    async Task<bool> IAssignmentRepository.UpdateStartDate(Guid guid, DateTimeOffset? startDate)
+    async Task<bool> IAssignmentRepository.UpdateDuration(Guid guid, int Duration)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "UPDATE Assignments SET StartDate = @StartDate WHERE Guid = @Guid;";
+        string sql = "UPDATE Assignments SET Duration = @Duration WHERE Guid = @Guid;";
 
-        string? parsedStartDate = startDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, StartDate = parsedStartDate });
-        return affectedRows > 0;
-    }
-
-    async Task<bool> IAssignmentRepository.UpdateEndDate(Guid guid, DateTimeOffset? endDate)
-    {
-        using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "UPDATE Assignments SET EndDate = @EndDate WHERE Guid = @Guid;";
-        
-        string? parsedEndDate = endDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, EndDate = parsedEndDate });
-        return affectedRows > 0;
-    }
-
-    async Task<bool> IAssignmentRepository.UpdateDeadlineDate(Guid guid, DateTimeOffset? deadlineDate)
-    {
-        using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "UPDATE Assignments SET DeadlineDate = @DeadlineDate WHERE Guid = @Guid;";
-
-        string? parsedDeadlineDate = deadlineDate?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, DeadlineDate = parsedDeadlineDate });
+        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, Duration = Duration });
         return affectedRows > 0;
     }
 

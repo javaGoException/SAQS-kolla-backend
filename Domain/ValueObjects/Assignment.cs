@@ -7,9 +7,8 @@ public class Assignment
     public required Guid Guid {get; set;}
     public required string DisplayName {get; set;}
     public required string? Description {get; set;}
-    public required DateTimeOffset? StartDate {get; set;}
-    public required DateTimeOffset? EndDate {get; set;}
-    public required DateTimeOffset? DeadlineDate {get; set;}
+    public required int Duration {get; set;}
+    public required int SequenceNumber {get; set;}
     public required Guid? AssigneeGuid {get; set;}
     public required Guid? RequiredRoleGuid {get; set;}
     public required Priority Priority { get; set; } = Priority.MidTerm;
