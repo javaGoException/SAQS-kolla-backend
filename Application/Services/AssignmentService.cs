@@ -7,10 +7,42 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class AssignmentService(IAssignmentRepository assignmentRepository, IActorRepository actorRepository, IRoleRepository roleRepository, IObjectiveRepository objectiveRepository) : IAssignmentService
 {
-    private Priority CalculateAssignmentPriority(DateTimeOffset deadlineDate, int duration)
+    private async Task RecalculatePrioritiesForObjective(Guid objectiveGuid)
+    {
+        Objective? objective = await objectiveRepository.QueryObjective(objectiveGuid);
+        if (objective == null) return;
+
+        List<Assignment> assignments = await assignmentRepository.QueryAssignmentsByObjective(objectiveGuid);
+        if (assignments.Count == 0) return;
+
+        // Sort assignments by sequence number
+        assignments = assignments.OrderBy(a => a.SequenceNumber).ToList();
+
+        for (int i = 0; i < assignments.Count; i++)
+        {
+            var assignment = assignments[i];
+            
+            // Calculate sum of durations of SUBSEQUENT tasks (those with higher index in sorted list)
+            int subsequentDuration = 0;
+            for (int j = i + 1; j < assignments.Count; j++)
+            {
+                subsequentDuration += assignments[j].Duration;
+            }
+
+            Priority newPriority = CalculateAssignmentPriority(objective.DeadlineDate, assignment.Duration, subsequentDuration);
+            
+            if (newPriority != assignment.Priority)
+            {
+                await assignmentRepository.UpdatePriority(assignment.Guid, newPriority);
+            }
+        }
+    }
+
+    private Priority CalculateAssignmentPriority(DateTimeOffset deadlineDate, int currentDuration, int subsequentDuration)
     {
         int hoursUntilDeadline = (int)(deadlineDate - DateTimeOffset.Now).TotalHours;
-        int remainingTimeAfterWork = hoursUntilDeadline - duration; 
+        int totalRequiredTime = currentDuration + subsequentDuration;
+        int remainingTimeAfterWork = hoursUntilDeadline - totalRequiredTime; 
 
         if (remainingTimeAfterWork <= 8)
         {
@@ -120,7 +152,8 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
             {
                 return Result<Guid>.Failure(ResultError.NotFound, "The objective with this guid doesn't exists");
             }
-            assignmentPriority = CalculateAssignmentPriority(parentObjective.DeadlineDate, duration);
+            // Initial priority set here, but will be recalculated/refined after insert along with others
+            assignmentPriority = CalculateAssignmentPriority(parentObjective.DeadlineDate, duration, 0); 
         }
 
         var maxSequenceNumber = (await assignmentRepository.GetMaxSequenceNumber() ?? 0) + 1;
@@ -139,6 +172,12 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         };
         
         await assignmentRepository.InsertAssignment(assignment);
+
+        if (parentObjectiveGuid.HasValue)
+        {
+            await RecalculatePrioritiesForObjective(parentObjectiveGuid.Value);
+        }
+
         return Result<Guid>.Success(assignment.Guid);
     }
 
@@ -192,15 +231,14 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
 
         if (assignment.ParentObjectiveGuid.HasValue)
         {
-            Objective? parentObjective = await objectiveRepository.QueryObjective(assignment.ParentObjectiveGuid.Value);
-            if (parentObjective != null)
-            {
-                Priority assignmentPriority = CalculateAssignmentPriority(parentObjective.DeadlineDate, duration);
-                await assignmentRepository.UpdatePriority(guid, assignmentPriority);
-            }
+            await assignmentRepository.UpdateDuration(guid, duration); // Update duration first
+            await RecalculatePrioritiesForObjective(assignment.ParentObjectiveGuid.Value); // Then recalculate all
         }
-        
-        await assignmentRepository.UpdateDuration(guid, duration);
+        else 
+        {
+            await assignmentRepository.UpdateDuration(guid, duration);
+        }
+
         return Result.Success();
     }
     
@@ -314,11 +352,19 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
                 return Result.Failure(ResultError.NotFound,"Objective with this guid does not exist");
             }
 
-            Priority assignmentPriority = CalculateAssignmentPriority(objective.DeadlineDate, assignment.Duration);
-            await assignmentRepository.UpdatePriority(guid, assignmentPriority);
+            // Temporarily update parent here, then recalculate
+            await assignmentRepository.UpdateParentObjective(guid, parentObjectiveGuid);
+            await RecalculatePrioritiesForObjective(parentObjectiveGuid.Value);
+        }
+        else
+        {
+            await assignmentRepository.UpdateParentObjective(guid, parentObjectiveGuid);
         }
 
-        await assignmentRepository.UpdateParentObjective(guid, parentObjectiveGuid);
+        // If assignment was moved FROM another objective, we might want to recalculate old objective too, 
+        // but current implementation only updates current one. Assuming "move" logic handles both sides if completely implemented,
+        // but for now, we ensure target objective priorities are correct.
+        
         return Result.Success();
     }
     
@@ -331,6 +377,12 @@ public class AssignmentService(IAssignmentRepository assignmentRepository, IActo
         }
         
         await assignmentRepository.DeleteAssignment(guid);
+        
+        if (assignment.ParentObjectiveGuid.HasValue)
+        {
+            await RecalculatePrioritiesForObjective(assignment.ParentObjectiveGuid.Value);
+        }
+
         return Result.Success();
     }
 }

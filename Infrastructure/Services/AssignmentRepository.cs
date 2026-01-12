@@ -174,8 +174,34 @@ public class AssignmentRepository(IDatabaseConnector databaseConnector) : IAssig
         using var connection = await databaseConnector.OpenConnectionAsync();
         string sql = "UPDATE Assignments SET ParentObjectiveGuid = @ParentObjectiveGuid WHERE Guid = @Guid;";
 
-        var affectedRows = await connection.ExecuteAsync(sql, new { Guid = guid, ParentObjectiveGuid = parentObjectiveGuid });
+        var affectedRows = await connection.ExecuteAsync(sql, new {Guid = guid, ParentObjectiveGuid = parentObjectiveGuid});
         return affectedRows > 0;
+    }
+
+    async Task<List<Assignment>> IAssignmentRepository.QueryAssignmentsByObjective(Guid parentObjectiveGuid)
+    {
+        using var connection = await databaseConnector.OpenConnectionAsync();
+        string sql = "SELECT * FROM Assignments WHERE ParentObjectiveGuid = @ParentObjectiveGuid;";
+        IEnumerable<AssignmentDto> assignmentDtos = await connection.QueryAsync<AssignmentDto>(sql, new { ParentObjectiveGuid = parentObjectiveGuid });
+
+        List<Assignment> assignments = new();
+        foreach(var dto in assignmentDtos)
+        {
+            assignments.Add(new Assignment
+            {
+                Guid = Guid.Parse(dto.Guid),
+                DisplayName = dto.DisplayName,
+                Description = dto.Description,
+                Duration = (int)dto.Duration,
+                SequenceNumber = (int)dto.SequenceNumber,
+                AssigneeGuid = dto.AssigneeGuid != null ? Guid.Parse(dto.AssigneeGuid) : null,
+                RequiredRoleGuid = dto.RequiredRoleGuid != null ? Guid.Parse(dto.RequiredRoleGuid) : null,
+                Priority = (Priority)dto.Priority,
+                Status = (AssignmentStatus)dto.Status,
+                ParentObjectiveGuid = dto.ParentObjectiveGuid != null ? Guid.Parse(dto.ParentObjectiveGuid) : null
+            });
+        }
+        return assignments;
     }
 
     async Task<bool> IAssignmentRepository.DeleteAssignment(Guid guid)
