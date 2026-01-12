@@ -19,5 +19,6 @@ public interface IAssignmentRepository
     Task<bool> UpdatePriority(Guid guid, Priority priority);
     Task<bool> UpdateStatus(Guid guid, AssignmentStatus assignmentStatus);
     Task<bool> UpdateParentObjective(Guid guid, Guid? parentObjectiveGuid);
+    Task<List<Assignment>> QueryAssignmentsByObjective(Guid parentObjectiveGuid);
     Task<bool> DeleteAssignment(Guid guid);
 }
