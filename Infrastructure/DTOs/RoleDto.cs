@@ -4,5 +4,6 @@ public record RoleDto(
     string Guid, 
     string DisplayName, 
     string? Description,
-    long IsAdmin
+    long IsAdmin,
+    string? TenantId
 );

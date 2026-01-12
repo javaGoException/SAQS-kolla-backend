@@ -28,7 +28,8 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
             Guid = Guid.Parse(objectiveDto.Guid),
             DisplayName = objectiveDto.DisplayName,
             Description = objectiveDto.Description,
-            DeadlineDate = deadlineDateParsed
+            DeadlineDate = deadlineDateParsed,
+            TenantId = objectiveDto.TenantId != null ? Guid.Parse(objectiveDto.TenantId) : null
         };
         return objective;
     }
@@ -52,17 +53,25 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
             Guid = Guid.Parse(objectiveDto.Guid),
             DisplayName = objectiveDto.DisplayName,
             Description = objectiveDto.Description,
-            DeadlineDate = deadlineDateParsed
+            DeadlineDate = deadlineDateParsed,
+            TenantId = objectiveDto.TenantId != null ? Guid.Parse(objectiveDto.TenantId) : null
         };
         return objective;
     }
 
-    async Task<List<Guid>> IObjectiveRepository.QueryAllObjectivesGuids()
+    async Task<List<Guid>> IObjectiveRepository.QueryAllObjectivesGuids(Guid? tenantId)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT Guid FROM Objectives;";
+        string sql = "SELECT Guid FROM Objectives";
+        
+        if (tenantId.HasValue)
+        {
+            sql += " WHERE TenantId = @TenantId";
+        }
+        
+        sql += ";";
 
-        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql);
+        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql, new { TenantId = tenantId });
         List<Guid> guids = stringGuids.Select(g => Guid.Parse(g)).ToList();
         return guids;
     }
@@ -70,7 +79,7 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
     async Task<bool> IObjectiveRepository.InsertObjective(Objective objective)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "INSERT INTO Objectives(Guid, DisplayName, Description, DeadlineDate) VALUES (@Guid, @DisplayName, @Description, @DeadlineDate);";
+        string sql = "INSERT INTO Objectives(Guid, DisplayName, Description, DeadlineDate, TenantId) VALUES (@Guid, @DisplayName, @Description, @DeadlineDate, @TenantId);";
 
         string parsedDeadline = objective.DeadlineDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
@@ -79,7 +88,8 @@ public class ObjectiveRepository(IDatabaseConnector databaseConnector) : IObject
             Guid = objective.Guid,
             DisplayName = objective.DisplayName,
             Description = objective.Description,
-            DeadlineDate = parsedDeadline
+            DeadlineDate = parsedDeadline,
+            TenantId = objective.TenantId
         };
         var affectedRows = await connection.ExecuteAsync(sql, param);
         

@@ -5,9 +5,9 @@ namespace SAQS_kolla_backend.Application.Interfaces;
 
 public interface IActorService
 {
-    Task<Result<List<Guid>>> GetAllGuids();
+    Task<Result<List<Guid>>> GetAllGuids(Guid? tenantId = null);
     Task<Result<Actor>> Get(Guid guid);
-    Task<Result<Guid>> Create(string displayName, Guid? roleGuid);
+    Task<Result<Guid>> Create(string displayName, Guid? roleGuid, Guid? tenantId = null);
     Task<Result> SetDisplayName(Guid guid, string displayName);
     Task<Result> SetRole(Guid guid, Guid? roleGuid);
     Task<Result<List<Guid>>> GetAllAssignments(Guid guid);

@@ -4,5 +4,6 @@ public record ObjectiveDto(
     string Guid, 
     string DisplayName, 
     string? Description,
-    string DeadlineDate
+    string DeadlineDate,
+    string? TenantId
 );

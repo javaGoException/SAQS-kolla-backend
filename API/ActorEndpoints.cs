@@ -10,9 +10,9 @@ public static class ActorEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapGet("Actor/GetAll", async (IActorService actorService) =>
+        app.MapGet("Actor/GetAll", async (IActorService actorService, Guid? tenantId) =>
         {
-            Result<List<Guid>> result = await actorService.GetAllGuids();
+            Result<List<Guid>> result = await actorService.GetAllGuids(tenantId);
             if (result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -32,7 +32,7 @@ public static class ActorEndpoints
 
         app.MapPost("Actor/Create", async ([FromBody] ActorCreateRequest request, IActorService actorService) =>
         {
-            Result<Guid> result = await actorService.Create(request.DisplayName, request.RoleGuid);
+            Result<Guid> result = await actorService.Create(request.DisplayName, request.RoleGuid, request.TenantId);
 
             if (result.IsSuccess == false)
             {

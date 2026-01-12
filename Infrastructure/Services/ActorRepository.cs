@@ -30,7 +30,8 @@ public class ActorRepository(IDatabaseConnector databaseConnector, IRoleReposito
         {
             Guid = Guid.Parse(actorDto.Guid),
             DisplayName = actorDto.DisplayName,
-            Role = role
+            Role = role,
+            TenantId = actorDto.TenantId != null ? Guid.Parse(actorDto.TenantId) : null
         };
         return actor;
     }
@@ -57,29 +58,38 @@ public class ActorRepository(IDatabaseConnector databaseConnector, IRoleReposito
         {
             Guid = Guid.Parse(actorDto.Guid),
             DisplayName = actorDto.DisplayName,
-            Role = role
+            Role = role,
+            TenantId = actorDto.TenantId != null ? Guid.Parse(actorDto.TenantId) : null
         };
         return actor;
     }
 
-    async Task<List<Guid>> IActorRepository.QueryAllActorGuids()
+    async Task<List<Guid>> IActorRepository.QueryAllActorGuids(Guid? tenantId)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT Guid FROM Actors;";
+        string sql = "SELECT Guid FROM Actors";
+        
+        if(tenantId.HasValue)
+        {
+            sql += " WHERE TenantId = @TenantId";
+        }
+        
+        sql += ";";
 
-        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql);
+        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql, new { TenantId = tenantId });
         return stringGuids.Select(g => Guid.Parse(g)).ToList();
     }
 
     async Task<bool> IActorRepository.InsertActor(Actor actor, Guid? roleGuid)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "INSERT INTO Actors(Guid, DisplayName, RoleGuid) VALUES (@Guid, @DisplayName, @RoleGuid);";
+        string sql = "INSERT INTO Actors(Guid, DisplayName, RoleGuid, TenantId) VALUES (@Guid, @DisplayName, @RoleGuid, @TenantId);";
 
         var affectedRows = await connection.ExecuteAsync(sql, new { 
             Guid = actor.Guid, 
             DisplayName = actor.DisplayName, 
-            RoleGuid = roleGuid 
+            RoleGuid = roleGuid,
+            TenantId = actor.TenantId
         });
         return affectedRows > 0;
     }
