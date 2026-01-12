@@ -11,9 +11,9 @@ public static class ObjectiveEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapGet("Objective/GetAll",async (IObjectiveService objectiveService) =>
+        app.MapGet("Objective/GetAll",async (IObjectiveService objectiveService, Guid? tenantId) =>
         {
-            Result<List<Guid>> result = await objectiveService.GetAllGuids();
+            Result<List<Guid>> result = await objectiveService.GetAllGuids(tenantId);
             if (result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -40,7 +40,7 @@ public static class ObjectiveEndpoints
                 return Results.BadRequest(new {error="DeadlineDate must be in the future"});
             }
 
-            Result<Guid> result = await objectiveService.Create(objectiveCreateRequest.DisplayName, objectiveCreateRequest.Description, objectiveCreateRequest.DeadlineDate);
+            Result<Guid> result = await objectiveService.Create(objectiveCreateRequest.DisplayName, objectiveCreateRequest.Description, objectiveCreateRequest.DeadlineDate, objectiveCreateRequest.TenantId);
 
             if(result.IsSuccess == false)
             {

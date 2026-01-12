@@ -11,9 +11,27 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
     public async Task InitializeDatabase()
     {
         await CreateObjectivesTable();
+        await EnsureColumnExists("Objectives", "TenantId", "TEXT");
+        
         await CreateRolesTable();
+        await EnsureColumnExists("Roles", "TenantId", "TEXT");
+
         await CreateActorsTable();
+        await EnsureColumnExists("Actors", "TenantId", "TEXT");
+
         await CreateAssignmentTable();
+    }
+
+    private async Task EnsureColumnExists(string tableName, string columnName, string columnDefinition)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        var count = await connection.ExecuteScalarAsync<int>(
+            $"SELECT COUNT(*) FROM pragma_table_info('{tableName}') WHERE name='{columnName}';");
+            
+        if (count == 0)
+        {
+            await connection.ExecuteAsync($"ALTER TABLE {tableName} ADD COLUMN {columnName} {columnDefinition};");
+        }
     }
 
     private async Task CreateObjectivesTable()
@@ -24,7 +42,8 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
         Description TEXT,
-        DeadlineDate TEXT NOT NULL
+        DeadlineDate TEXT NOT NULL,
+        TenantId TEXT
         );");
     }
 
@@ -36,7 +55,8 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
         Description TEXT,
-        IsAdmin INTEGER NOT NULL
+        IsAdmin INTEGER NOT NULL,
+        TenantId TEXT
         );");
     }
 
@@ -47,7 +67,8 @@ public class SqliteInitializer(IOptions<DatabaseOptions> options)
         CREATE TABLE IF NOT EXISTS Actors(
         Guid TEXT PRIMARY KEY,
         DisplayName TEXT NOT NULL,
-        RoleGuid TEXT
+        RoleGuid TEXT,
+        TenantId TEXT
         );");
     }
 

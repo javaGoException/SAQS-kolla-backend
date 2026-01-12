@@ -6,9 +6,9 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjectiveService
 {
-    async Task<Result<List<Guid>>> IObjectiveService.GetAllGuids()
+    async Task<Result<List<Guid>>> IObjectiveService.GetAllGuids(Guid? tenantId)
     {
-        List<Guid> guids = await objectiveRepository.QueryAllObjectivesGuids();
+        List<Guid> guids = await objectiveRepository.QueryAllObjectivesGuids(tenantId);
         return Result<List<Guid>>.Success(guids);
     }
 
@@ -24,7 +24,7 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
         return Result<Objective>.Success(objective);
     }
 
-    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description, DateTimeOffset deadlineDate)
+    async Task<Result<Guid>> IObjectiveService.Create(string name, string? description, DateTimeOffset deadlineDate, Guid? tenantId)
     {
         Objective? existingObjective = await objectiveRepository.QueryObjective(name);
 
@@ -43,7 +43,8 @@ public class ObjectiveService(IObjectiveRepository objectiveRepository) : IObjec
             Guid = Guid.NewGuid(),
             DisplayName = name,
             Description = description,
-            DeadlineDate = deadlineDate
+            DeadlineDate = deadlineDate,
+            TenantId = tenantId
         };
         await objectiveRepository.InsertObjective(objective);
 

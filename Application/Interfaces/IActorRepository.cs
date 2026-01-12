@@ -6,7 +6,7 @@ public interface IActorRepository
 {
     Task<Actor?> QueryActor(Guid guid);
     Task<Actor?> QueryActor(string displayName);
-    Task<List<Guid>> QueryAllActorGuids();
+    Task<List<Guid>> QueryAllActorGuids(Guid? tenantId = null);
     Task<bool> InsertActor(Actor actor, Guid? roleGuid);
     Task<bool> UpdateDisplayName(Guid guid, string displayName);
     Task<bool> UpdateRole(Guid guid, Guid? roleGuid);

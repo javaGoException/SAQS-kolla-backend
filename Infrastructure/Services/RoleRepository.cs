@@ -25,7 +25,8 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
             Guid = Guid.Parse(roleDto.Guid),
             DisplayName = roleDto.DisplayName,
             Description = roleDto.Description,
-            IsAdmin = roleDto.IsAdmin != 0
+            IsAdmin = roleDto.IsAdmin != 0,
+            TenantId = roleDto.TenantId != null ? Guid.Parse(roleDto.TenantId) : null
         };
         return role;
     }
@@ -47,17 +48,23 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
             Guid = Guid.Parse(roleDto.Guid),
             DisplayName = roleDto.DisplayName,
             Description = roleDto.Description,
-            IsAdmin = roleDto.IsAdmin != 0
+            IsAdmin = roleDto.IsAdmin != 0,
+            TenantId = roleDto.TenantId != null ? Guid.Parse(roleDto.TenantId) : null
         };
         return role;
     }
 
-    async Task<List<Guid>> IRoleRepository.QueryAllRolesGuids()
+    async Task<List<Guid>> IRoleRepository.QueryAllRolesGuids(Guid? tenantId)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "SELECT Guid FROM Roles;";
+        string sql = "SELECT Guid FROM Roles";
+        if (tenantId.HasValue)
+        {
+            sql += " WHERE TenantId = @TenantId";
+        }
+        sql += ";";
 
-        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql);
+        IEnumerable<string> stringGuids = await connection.QueryAsync<string>(sql, new { TenantId = tenantId });
         List<Guid> guids = stringGuids.Select(g => Guid.Parse(g)).ToList();
         return guids;
     }
@@ -65,7 +72,7 @@ public class RoleRepository(IDatabaseConnector databaseConnector) : IRoleReposit
     async Task<bool> IRoleRepository.InsertRole(Role role)
     {
         using var connection = await databaseConnector.OpenConnectionAsync();
-        string sql = "INSERT INTO Roles(Guid, DisplayName, Description, IsAdmin) VALUES (@Guid, @DisplayName, @Description, @IsAdmin);";
+        string sql = "INSERT INTO Roles(Guid, DisplayName, Description, IsAdmin, TenantId) VALUES (@Guid, @DisplayName, @Description, @IsAdmin, @TenantId);";
 
         var affectedRows = await connection.ExecuteAsync(sql, role);
         return affectedRows > 0;

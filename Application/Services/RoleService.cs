@@ -6,9 +6,9 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class RoleService(IRoleRepository roleRepository) : IRoleService
 {
-    async Task<Result<List<Guid>>> IRoleService.GetAllGuids()
+    async Task<Result<List<Guid>>> IRoleService.GetAllGuids(Guid? tenantId)
     {
-        List<Guid> guids = await roleRepository.QueryAllRolesGuids();
+        List<Guid> guids = await roleRepository.QueryAllRolesGuids(tenantId);
         return Result<List<Guid>>.Success(guids);
     }
 
@@ -24,9 +24,9 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         return Result<Role>.Success(role);
     }
 
-    async Task<Result<Guid>> IRoleService.Create(string name, string? description, bool isAdmin)
+    async Task<Result<Guid>> IRoleService.Create(string displayName, string? description, bool isAdmin, Guid? tenantId)
     {
-        Role? existingRole = await roleRepository.QueryRole(name);
+        Role? existingRole = await roleRepository.QueryRole(displayName);
 
         if (existingRole != null)
         {
@@ -36,9 +36,10 @@ public class RoleService(IRoleRepository roleRepository) : IRoleService
         Role role = new()
         {
             Guid = Guid.NewGuid(),
-            DisplayName = name,
+            DisplayName = displayName,
             Description = description,
-            IsAdmin = isAdmin
+            IsAdmin = isAdmin,
+            TenantId = tenantId
         };
         await roleRepository.InsertRole(role);
 

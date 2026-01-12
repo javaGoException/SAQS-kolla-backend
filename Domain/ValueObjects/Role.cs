@@ -6,4 +6,5 @@ public class Role
     public required string DisplayName {get; set;}
     public required string? Description {get; set;}
     public required bool IsAdmin {get; set;}
+    public Guid? TenantId {get; set;}
 }

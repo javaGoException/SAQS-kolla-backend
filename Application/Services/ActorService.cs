@@ -6,9 +6,9 @@ namespace SAQS_kolla_backend.Application.Services;
 
 public class ActorService(IActorRepository actorRepository, IRoleRepository roleRepository) : IActorService
 {
-    async Task<Result<List<Guid>>> IActorService.GetAllGuids()
+    async Task<Result<List<Guid>>> IActorService.GetAllGuids(Guid? tenantId)
     {
-        List<Guid> guids = await actorRepository.QueryAllActorGuids();
+        List<Guid> guids = await actorRepository.QueryAllActorGuids(tenantId);
         return Result<List<Guid>>.Success(guids);
     }
 
@@ -22,7 +22,7 @@ public class ActorService(IActorRepository actorRepository, IRoleRepository role
         return Result<Actor>.Success(actor);
     }
 
-    async Task<Result<Guid>> IActorService.Create(string displayName, Guid? roleGuid)
+    async Task<Result<Guid>> IActorService.Create(string displayName, Guid? roleGuid, Guid? tenantId)
     {
         Actor? existingActor = await actorRepository.QueryActor(displayName);
         if (existingActor != null)
@@ -44,7 +44,8 @@ public class ActorService(IActorRepository actorRepository, IRoleRepository role
         {
             Guid = Guid.NewGuid(),
             DisplayName = displayName,
-            Role = role
+            Role = role,
+            TenantId = tenantId
         };
 
         await actorRepository.InsertActor(actor, roleGuid);

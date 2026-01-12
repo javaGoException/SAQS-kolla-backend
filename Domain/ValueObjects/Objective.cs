@@ -6,4 +6,5 @@ public class Objective
     public required string DisplayName {get; set;}
     public required string? Description {get; set;}
     public required DateTimeOffset DeadlineDate {get; set;}
+    public Guid? TenantId {get; set;}
 }

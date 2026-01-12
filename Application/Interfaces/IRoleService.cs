@@ -5,9 +5,9 @@ namespace SAQS_kolla_backend.Application.Interfaces;
 
 public interface IRoleService
 {
-    Task<Result<List<Guid>>> GetAllGuids();
+    Task<Result<List<Guid>>> GetAllGuids(Guid? tenantId = null);
     Task<Result<Role>> Get(Guid guid);
-    Task<Result<Guid>> Create(string displayName, string? description, bool isAdmin);
+    Task<Result<Guid>> Create(string displayName, string? description, bool isAdmin, Guid? tenantId = null);
     Task<Result> SetDisplayName(Guid guid, string displayName);
     Task<Result> SetDescription(Guid guid, string? description);
     Task<Result> SetAdminFlag(Guid guid, bool isAdmin);

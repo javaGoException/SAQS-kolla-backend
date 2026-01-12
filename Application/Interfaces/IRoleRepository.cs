@@ -6,7 +6,7 @@ public interface IRoleRepository
 {
     Task<Role?> QueryRole(Guid guid);
     Task<Role?> QueryRole(string name);
-    Task<List<Guid>> QueryAllRolesGuids();
+    Task<List<Guid>> QueryAllRolesGuids(Guid? tenantId = null);
     Task<bool> InsertRole(Role role);
     Task<bool> UpdateDisplayName(Guid guid, string displayName);
     Task<bool> UpdateDescription(Guid guid, string? description);

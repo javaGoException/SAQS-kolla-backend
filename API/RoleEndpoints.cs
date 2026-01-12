@@ -10,9 +10,9 @@ public static class RoleEndpoints
 {
     public static void Map(WebApplication app)
     {
-        app.MapGet("Role/GetAll",async (IRoleService roleService) =>
+        app.MapGet("Role/GetAll",async (IRoleService roleService, Guid? tenantId) =>
         {
-            Result<List<Guid>> result = await roleService.GetAllGuids();
+            Result<List<Guid>> result = await roleService.GetAllGuids(tenantId);
             if (result.IsSuccess == false)
             {
                 return ErrorMapper.Map(result.ResultError, result.Error!);
@@ -34,7 +34,7 @@ public static class RoleEndpoints
 
         app.MapPost("Role/Create", async ([FromBody] RoleCreateRequest roleCreateRequest, IRoleService roleService) =>
         {
-            Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.IsAdmin);
+            Result<Guid> result = await roleService.Create(roleCreateRequest.DisplayName, roleCreateRequest.Description, roleCreateRequest.IsAdmin, roleCreateRequest.TenantId);
 
             if(result.IsSuccess == false)
             {
